@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Container, Row, Col, Card, Form, Alert } from '../ui'
 import {
   ResponsiveContainer,
@@ -59,6 +59,8 @@ export default function Teams() {
   const [graphType, setGraphType] = useState<GraphType>('team_new_users')
   const [checkedTeamIds, setCheckedTeamIds] = useState<Set<number>>(new Set())
   const [querying, setQuerying] = useState(0)
+  const [graphError, setGraphError] = useState('')
+  const inFlight = useRef(new Set<string>())
   const [teamData, setTeamData] = useState<Record<GraphType, TeamSeriesMap>>({
     team_new_users: {},
     team_loan_count: {},
@@ -93,17 +95,22 @@ export default function Teams() {
   }, [lenderDataVersion, lenderId])
 
   useEffect(() => {
-    let cancelled = false
-    const missingIds = Array.from(checkedTeamIds).filter((teamId) => !teamData[graphType][teamId])
+    // Track in-flight requests across effect re-runs (the effect re-fires on
+    // every teamData update) so a team is fetched and counted exactly once.
+    const missingIds = Array.from(checkedTeamIds).filter(
+      (teamId) =>
+        !teamData[graphType][teamId] && !inFlight.current.has(`${graphType}:${teamId}`),
+    )
     if (!missingIds.length) return
 
     setQuerying((count) => count + missingIds.length)
 
     missingIds.forEach((teamId) => {
+      const flightKey = `${graphType}:${teamId}`
+      inFlight.current.add(flightKey)
       req.kiva.ajax
         .get('getGraphData', { graphName: graphType, id: teamId })
         .then((result) => {
-          if (cancelled) return
           const sorted = ((result?.graphData ?? []) as Array<[string, number]>)
             .map(([x, y]) => [parseInt(x, 10), Number(y)] as [number, number])
             .sort((a, b) => a[0] - b[0])
@@ -116,6 +123,7 @@ export default function Teams() {
               return avg === 0 || curr >= avg * 0.4
             })
 
+          setGraphError('')
           setTeamData((prev) => ({
             ...prev,
             [graphType]: {
@@ -125,20 +133,14 @@ export default function Teams() {
           }))
         })
         .catch((err) => {
-          if (!cancelled) {
-            setError(err instanceof Error ? err.message : 'Failed to load team graph data.')
-          }
+          // Scope graph-fetch failures to the chart pane; never unmount the page.
+          setGraphError(err instanceof Error ? err.message : 'Failed to load team graph data.')
         })
         .finally(() => {
-          if (!cancelled) {
-            setQuerying((count) => Math.max(0, count - 1))
-          }
+          inFlight.current.delete(flightKey)
+          setQuerying((count) => Math.max(0, count - 1))
         })
     })
-
-    return () => {
-      cancelled = true
-    }
   }, [checkedTeamIds, graphType, teamData])
 
   const toggleTeam = useCallback((teamId: number) => {
@@ -253,6 +255,7 @@ export default function Teams() {
         </Col>
 
         <Col sm={8}>
+          {graphError ? <Alert variant="danger">{graphError}</Alert> : null}
           {checkedTeamIds.size > 0 && chartData.length > 0 ? (
             <div style={{ height: 600 }}>
               <ResponsiveContainer width="100%" height="100%">

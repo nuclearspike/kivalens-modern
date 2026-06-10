@@ -69,6 +69,10 @@ export class SemRequest {
       setTimeout(() => {
         this.cache.delete(key)
       }, this.ttlSecs * 1000)
+      // Never serve a failure from cache — evict so the next call retries.
+      promise.catch(() => {
+        this.cache.delete(key)
+      })
     }
 
     return promise
