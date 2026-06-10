@@ -1,73 +1,63 @@
-# React + TypeScript + Vite
+# KivaLens Modern
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A pixel-faithful clone of [KivaLens](https://www.kivalens.org) (the advanced
+loan-search tool for [Kiva.org](https://www.kiva.org) micro-lending) rebuilt on
+a modern stack with **zero Bootstrap**.
 
-Currently, two official plugins are available:
+The original app (`../kivalensjs-old`) is React 0.14 + Reflux + Bootstrap 3
+(Bootswatch Flatly) + Browserify. This clone reproduces its rendered look and
+behavior using:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Layer            | Original                       | This app                          |
+| ---------------- | ------------------------------ | --------------------------------- |
+| Build            | Browserify + Babel 5 + gulp    | Vite 8                            |
+| Language         | ES2015 JSX                     | TypeScript 5.9                    |
+| UI runtime       | React 0.14                     | React 19                          |
+| State            | Reflux stores                  | zustand (+ immer)                 |
+| Routing          | react-router 1                 | react-router-dom 7 (hash router)  |
+| CSS framework    | Bootstrap 3 / Flatly + SCSS    | **None** — hand-rolled `src/ui/` + `src/styles/base/` |
+| Charts           | Highcharts (vendor bundle)     | recharts                          |
+| Selects          | react-select v1                | react-select v5 (restyled to v1)  |
+| Sliders          | react-slider                   | rc-slider (restyled)              |
+| Server           | Express proxy on Heroku        | Vite dev plugin (`server/klDevPlugin.ts`) |
 
-## React Compiler
+## No Bootstrap, same pixels
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `src/ui/` — hand-written components exposing the subset of the
+  react-bootstrap API the app uses (Grid, Button, Form, Card, ListGroup,
+  Badge, Alert, Tabs, Modal, Dropdown, ProgressBar, OverlayTrigger/Popover,
+  Navbar/Nav). No runtime dependencies.
+- `src/styles/base/` — a hand-written CSS base layer that reproduces the
+  Bootstrap 3 Flatly 3.3.5 rendering (buttons, forms, tabs, panels, alerts,
+  modals, badges, progress bars, grid, utilities). Values were lifted from
+  `reference/flatly-3.3.5-reference.css` (kept for reference only — never
+  imported).
+- `src/styles/main.scss` — the KivaLens green theme, ported from the original
+  `application.scss`.
 
-## Expanding the ESLint configuration
+## Run
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev      # http://localhost:5173 (or --port)
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+On startup the dev plugin downloads all fundraising loans from Kiva's API and
+serves them at the same `/api/` endpoints the production KivaLens server uses
+(first page-load may briefly use the Kiva-direct path while data is prepared).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build    # tsc + vite build
+npm run lint
 ```
+
+## Pixel-comparison workflow
+
+The original app can be run side by side for comparison:
+
+```bash
+cd ../kivalensjs-old && PORT=5055 node cluster.js
+```
+
+Both apps follow the same routes (`#/search`, `#/basket`, `#/partners`,
+`#/saved`, `#/options`, `#/about`, `#/teams`, `#/live`, `#/portfolio`, …).
