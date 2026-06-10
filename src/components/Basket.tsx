@@ -6,8 +6,11 @@ import {
   XAxis,
   YAxis,
   Tooltip,
+  Legend,
   ResponsiveContainer,
 } from 'recharts'
+import numeral from 'numeral'
+import { Button, ButtonGroup } from '../ui'
 import { useLoanStore } from '../stores'
 import type { BasketEntry } from '../stores'
 import BasketListItem from './BasketListItem'
@@ -81,27 +84,49 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
 
   const chartHeight = Math.max(300, Math.min(data.length * 22, 900))
 
+  const dollar = (v: number | string) => `$${numeral(Number(v)).format('0,0[.]00')}`
+
   return (
     <div className="card mb-3">
-      <div className="card-header">Repayments for Basket: {data.length} months</div>
       <div className="card-body p-2">
+        <h4>Repayments for Basket: {data.length} months</h4>
         {skippedCount > 0 ? (
           <div className="alert alert-warning py-1 mb-2">
             Repayment data unavailable for {skippedCount} of {entries.length} loans.
           </div>
         ) : null}
         <ResponsiveContainer width="100%" height={chartHeight}>
-          <ComposedChart data={data} layout="vertical" margin={{ left: 40, right: 10, top: 5, bottom: 5 }}>
-            <XAxis xAxisId="amount" type="number" orientation="bottom" hide />
-            <XAxis xAxisId="cumulative" type="number" orientation="top" hide />
+          <ComposedChart data={data} layout="vertical" margin={{ left: 10, right: 10, top: 5, bottom: 5 }}>
+            <XAxis
+              xAxisId="amount"
+              type="number"
+              orientation="bottom"
+              domain={[0, 'dataMax']}
+              tick={{ fontSize: 10 }}
+              tickFormatter={dollar}
+              label={{ value: 'Monthly', position: 'insideBottom', offset: -2, fontSize: 11 }}
+              height={40}
+            />
+            <XAxis
+              xAxisId="cumulative"
+              type="number"
+              orientation="top"
+              domain={[0, 'dataMax']}
+              tick={{ fontSize: 10 }}
+              tickFormatter={dollar}
+              label={{ value: 'Cumulative', position: 'insideTop', offset: -16, fontSize: 11 }}
+              height={40}
+            />
             <YAxis dataKey="label" type="category" tick={{ fontSize: 9 }} width={60} />
             <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
+            <Legend wrapperStyle={{ fontSize: 11 }} />
             <Bar
               xAxisId="amount"
               dataKey="amount"
               fill="#e8871a"
               name="Monthly Repayment"
               barSize={16}
+              isAnimationActive={false}
             />
             <Area
               xAxisId="cumulative"
@@ -109,6 +134,7 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
               stroke="#2C8C5E"
               fill="rgba(44, 140, 94, 0.15)"
               name="Cumulative"
+              isAnimationActive={false}
             />
           </ComposedChart>
         </ResponsiveContainer>
@@ -124,6 +150,7 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
 export default function Basket() {
   const getBasket = useLoanStore((s) => s.getBasket)
   const clearBasket = useLoanStore((s) => s.clearBasket)
+  const removeFromBasket = useLoanStore((s) => s.removeFromBasket)
   const basketSignature = useLoanStore((s) =>
     s.basket.map((item) => `${item.loan_id}:${item.amount}`).join(','),
   )
@@ -206,15 +233,23 @@ export default function Basket() {
     <div className="d-flex h-100 w-100">
       {/* Left column: basket list */}
       <div className="col-md-3 d-flex flex-column">
-        <div className="btn-group w-100 mb-0">
-          <button
-            className="btn btn-outline-secondary"
-            disabled={basketCount === 0}
-            onClick={handleClear}
-          >
+        <ButtonGroup className="top-only d-flex" style={{ marginBottom: 0 }}>
+          <Button className="w-50" disabled={basketCount === 0} onClick={handleClear}>
             Empty Basket
-          </button>
-        </div>
+          </Button>
+          <Button
+            className="w-50"
+            disabled={selectedId == null}
+            onClick={() => {
+              if (selectedId != null) {
+                removeFromBasket(selectedId)
+                setSelectedId(null)
+              }
+            }}
+          >
+            Remove Selected
+          </Button>
+        </ButtonGroup>
 
         {basketCount === 0 ? (
           <div className="alert alert-info mt-2">
@@ -235,17 +270,7 @@ export default function Basket() {
 
         <div className="list-group flex-grow-1 overflow-auto">
           {basketEntries.map((entry) => (
-            <BasketListItem
-              key={entry.id}
-              entry={entry}
-              onSelect={handleSelect}
-              onRemove={(id) => {
-                if (selectedId === id) {
-                  setSelectedId(null)
-                }
-              }}
-              isSelected={selectedId === entry.id}
-            />
+            <BasketListItem key={entry.id} entry={entry} onSelect={handleSelect} />
           ))}
         </div>
       </div>
@@ -254,9 +279,9 @@ export default function Basket() {
       <div className="col-md-3 px-3">
         <div className="card mb-3">
           <div className="card-body">
-            <h5 className="card-title mb-2">
-              Basket: {basketCount} loan{basketCount !== 1 ? 's' : ''} ${amountSum}
-            </h5>
+            <h3 style={{ margin: '0 0 8px' }}>
+              Basket: {basketCount} loans ${amountSum}
+            </h3>
             <form
               id="kiva-basket-form"
               method="POST"

@@ -7,17 +7,14 @@ import type { ChangeEvent } from 'react'
 interface BasketListItemProps {
   entry: BasketEntry
   onSelect: (id: number) => void
-  onRemove?: (id: number) => void
-  isSelected: boolean
 }
 
 /**
  * Individual basket row showing loan image, borrower name, country/sector,
  * amount dropdown (via lendAmountOptions), and a remove button.
  */
-export default function BasketListItem({ entry, onSelect, onRemove, isSelected }: BasketListItemProps) {
+export default function BasketListItem({ entry, onSelect }: BasketListItemProps) {
   const setBasketAmount = useLoanStore((s) => s.setBasketAmount)
-  const removeFromBasket = useLoanStore((s) => s.removeFromBasket)
   const loan = entry.loan
 
   if (!loan) return null
@@ -34,15 +31,9 @@ export default function BasketListItem({ entry, onSelect, onRemove, isSelected }
     setBasketAmount(entry.id, parseInt(e.target.value, 10))
   }
 
-  const handleRemove = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    removeFromBasket(entry.id)
-    onRemove?.(entry.id)
-  }
-
   return (
     <div
-      className={`list-group-item loan_list_item${isSelected ? ' active' : ''}`}
+      className="list-group-item loan_list_item"
       onClick={() => onSelect(entry.id)}
       role="button"
       tabIndex={0}
@@ -53,35 +44,27 @@ export default function BasketListItem({ entry, onSelect, onRemove, isSelected }
         <div className="loan-meta">
           <span className="loan-tag">{loan.location.country}</span>
           <span className="loan-tag">{loan.sector}</span>
+          <span className="loan-tag d-none d-lg-inline">{loan.activity}</span>
         </div>
-        <div className="d-flex align-items-center gap-2 mt-1">
-          {options.length > 0 ? (
-            <select
-              value={entry.amount}
-              onChange={handleAmountChange}
-              onClick={(e) => e.stopPropagation()}
-              className="form-select form-select-sm"
-              style={{ width: 'auto', minWidth: 80 }}
-            >
-              {options.map((o) => (
-                <option key={o} value={o}>
-                  ${o}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <span className="text-danger small fw-semibold">
-              Fully funded -- will be removed on checkout
-            </span>
-          )}
-          <button
-            className="btn btn-outline-danger btn-sm ms-auto flex-shrink-0"
-            onClick={handleRemove}
-            title="Remove from basket"
+        {options.length > 0 ? (
+          <select
+            value={entry.amount}
+            onChange={handleAmountChange}
+            onClick={(e) => e.stopPropagation()}
+            className="basket-amount-select"
+            style={{ padding: '2px 4px', fontSize: 13, borderRadius: 4, border: '1px solid #ccc', cursor: 'pointer' }}
           >
-            &times;
-          </button>
-        </div>
+            {options.map((o) => (
+              <option key={o} value={o}>
+                ${o}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span style={{ fontSize: 11, color: '#c0392b', fontWeight: 600 }}>
+            Fully funded — will be removed on checkout
+          </span>
+        )}
       </div>
     </div>
   )
