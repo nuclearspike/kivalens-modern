@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { Container, Button, Badge, ListGroup, Form, Row, Col } from '../ui'
+import { Container, Button, Badge, ListGroup, Form, Row, Col, Dropdown } from '../ui'
 import Select from './KLSelect'
 import Slider from 'rc-slider'
 import numeral from 'numeral'
@@ -76,8 +76,7 @@ const RELIGION_OPTIONS: SelectOption[] = [
   { value: 'Unknown', label: 'Unknown' },
 ]
 
-const STATUS_OPTIONS: SelectOption[] = [
-  { value: '', label: 'All statuses' },
+const STATUS_MULTI_OPTIONS: SelectOption[] = [
   { value: 'active', label: 'Active' },
   { value: 'paused', label: 'Paused' },
   { value: 'inactive', label: 'Inactive' },
@@ -130,19 +129,67 @@ function optionsToCsv(options: readonly SelectOption[]) {
   return options.map((option) => option.value).join(',')
 }
 
+
+function AanDropdown({
+  value,
+  onChange,
+  canAll,
+}: {
+  value: string
+  onChange: (val: string) => void
+  canAll?: boolean
+}) {
+  const selected = value || (canAll ? 'all' : 'any')
+  const styles: Record<string, string> = canAll
+    ? { all: 'success', any: 'primary', none: 'danger' }
+    : { any: 'success', none: 'danger' }
+
+  return (
+    <Dropdown>
+      <Dropdown.Toggle
+        size="sm"
+        variant={styles[selected] ?? 'primary'}
+        id="partner-aan-dropdown"
+        style={{ height: 34, padding: '4px 8px', width: 53 }}
+      >
+        {selected}
+      </Dropdown.Toggle>
+      <Dropdown.Menu>
+        {canAll ? <Dropdown.Item onClick={() => onChange('all')}>All of these</Dropdown.Item> : null}
+        <Dropdown.Item onClick={() => onChange('any')}>Any of these</Dropdown.Item>
+        <Dropdown.Item onClick={() => onChange('none')}>None of these</Dropdown.Item>
+      </Dropdown.Menu>
+    </Dropdown>
+  )
+}
+
 function FilterRow({
   label,
+  aan,
+  subLabel,
   children,
 }: {
   label: string
+  aan?: React.ReactNode
+  subLabel?: React.ReactNode
   children: React.ReactNode
 }) {
   return (
     <Row className="mb-2 align-items-start">
       <Col md={3}>
         <Form.Label className="small">{label}</Form.Label>
+        {subLabel}
       </Col>
-      <Col md={9}>{children}</Col>
+      <Col md={9}>
+        {aan ? (
+          <div className="d-flex gap-1 align-items-start">
+            <div className="flex-shrink-0">{aan}</div>
+            <div className="flex-grow-1">{children}</div>
+          </div>
+        ) : (
+          children
+        )}
+      </Col>
     </Row>
   )
 }
@@ -170,10 +217,14 @@ function RangeRow({
   const displayMax = maxVal == null ? 'max' : actualMax
 
   return (
-    <FilterRow label={label}>
-      <div className="small text-muted mb-1">
-        {displayMin} - {displayMax}
-      </div>
+    <FilterRow
+      label={label}
+      subLabel={
+        <div className="small text-muted">
+          {displayMin} - {displayMax}
+        </div>
+      }
+    >
       <div style={{ paddingTop: 8 }}>
         <Slider
           range
@@ -259,7 +310,7 @@ export function Component() {
   const [nameSearch, setNameSearch] = useState('')
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null)
   const [partnerTick, setPartnerTick] = useState(0)
-  const [filters, setFilters] = useState<PartnerFilters>({ status: 'active' })
+  const [filters, setFilters] = useState<PartnerFilters>({ status: 'active', status_all_any_none: 'any' })
 
   useEffect(() => {
     const kl = getKivaLoans()
@@ -306,7 +357,7 @@ export function Component() {
   }, [])
 
   const clearCriteria = useCallback(() => {
-    setFilters({ status: 'active' })
+    setFilters({ status: 'active', status_all_any_none: 'any' })
     setNameSearch('')
   }, [])
 
@@ -315,31 +366,44 @@ export function Component() {
       <div className="row">
         <div className="col-md-4">
           <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 80px)', paddingRight: 8 }}>
-            <FilterRow label="Name">
-              <Form.Control
-                type="text"
-                size="sm"
-                placeholder="Search by name..."
-                value={nameSearch}
-                onChange={(e) => setNameSearch(e.target.value)}
+            <Form.Control
+              type="text"
+              size="sm"
+              className="mb-2"
+              placeholder="Search by name..."
+              value={nameSearch}
+              onChange={(e) => setNameSearch(e.target.value)}
+            />
+
+            <FilterRow
+              label="Status"
+              aan={
+                <AanDropdown
+                  value={String(filters.status_all_any_none ?? 'any')}
+                  onChange={(v) => updateFilter('status_all_any_none', v)}
+                />
+              }
+            >
+              <Select
+                isMulti
+                options={STATUS_MULTI_OPTIONS}
+                value={csvToOptions(filters.status, STATUS_MULTI_OPTIONS)}
+                onChange={(value) => updateFilter('status', optionsToCsv(value as readonly SelectOption[]))}
+                menuPortalTarget={document.body}
+                styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }), control: (base) => ({ ...base, minHeight: 34 }) }}
               />
             </FilterRow>
 
-            <FilterRow label="Status">
-              <Form.Select
-                size="sm"
-                value={String(filters.status ?? 'active')}
-                onChange={(e) => updateFilter('status', e.target.value)}
-              >
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </FilterRow>
-
-            <FilterRow label="Countries">
+            <FilterRow
+              label="Countries"
+              aan={
+                <AanDropdown
+                  
+                  value={String(filters.country_code_all_any_none ?? 'any')}
+                  onChange={(v) => updateFilter('country_code_all_any_none', v)}
+                />
+              }
+            >
               <Select
                 isMulti
                 options={COUNTRY_OPTIONS}
@@ -350,7 +414,16 @@ export function Component() {
               />
             </FilterRow>
 
-            <FilterRow label="Region">
+            <FilterRow
+              label="Region"
+              aan={
+                <AanDropdown
+                  
+                  value={String(filters.region_all_any_none ?? 'any')}
+                  onChange={(v) => updateFilter('region_all_any_none', v)}
+                />
+              }
+            >
               <Select
                 isMulti
                 options={REGION_OPTIONS}
@@ -361,7 +434,16 @@ export function Component() {
               />
             </FilterRow>
 
-            <FilterRow label="Social Perf.">
+            <FilterRow
+              label="Social Perf."
+              aan={
+                <AanDropdown
+                  canAll
+                  value={String(filters.social_performance_all_any_none ?? 'all')}
+                  onChange={(v) => updateFilter('social_performance_all_any_none', v)}
+                />
+              }
+            >
               <Select
                 isMulti
                 options={SOCIAL_PERFORMANCE_OPTIONS}
@@ -386,7 +468,16 @@ export function Component() {
               </Form.Select>
             </FilterRow>
 
-            <FilterRow label="Religion">
+            <FilterRow
+              label="Religion"
+              aan={
+                <AanDropdown
+                  
+                  value={String(filters.religion_all_any_none ?? 'any')}
+                  onChange={(v) => updateFilter('religion_all_any_none', v)}
+                />
+              }
+            >
               <Select
                 isMulti
                 options={RELIGION_OPTIONS}

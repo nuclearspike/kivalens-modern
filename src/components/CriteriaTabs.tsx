@@ -3,7 +3,7 @@ import { Row, Col, Tab, Tabs, Form, Dropdown, Card, Alert, OverlayTrigger, Popov
 import Select from './KLSelect'
 import type { MultiValue, SingleValue } from 'react-select'
 import Slider from 'rc-slider'
-import 'rc-slider/assets/index.css'
+// rc-slider base CSS is imported globally in main.tsx
 import numeral from 'numeral'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
 import { useCriteriaStore, useLoanStore } from '../stores'

@@ -47,17 +47,6 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
   const countryNames = partner.countries?.map((c) => c.name).join(', ') ?? '(unknown)'
   const atheistScore = partner.atheistScore
   const showAtheistResearch = !!atheistScore
-  const metricPillClass = (value: number | null | undefined, lowGood = true) => {
-    if (value == null || Number.isNaN(value)) return 'partner-pill-muted'
-    if (lowGood) {
-      if (value < 3) return 'partner-pill-good'
-      if (value < 8) return 'partner-pill-warn'
-      return 'partner-pill-bad'
-    }
-    if (value >= 4.5) return 'partner-pill-good'
-    if (value >= 3) return 'partner-pill-warn'
-    return 'partner-pill-bad'
-  }
 
   return (
     <div className="PartnerDetail">
@@ -103,111 +92,70 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
         )}
       </h2>
 
-      <div className="d-flex flex-wrap gap-2 mb-3">
-        {(partner.countries ?? []).map((country) => (
-          <span key={country.iso_code} className="partner-pill partner-pill-muted">
-            {country.name}
-          </span>
-        ))}
-        {partner.rating != null ? (
-          <span className={`partner-pill ${metricPillClass(Number(partner.rating), false)}`}>
-            {partner.rating} stars
-          </span>
-        ) : null}
-        {partner.portfolio_yield != null ? (
-          <span className="partner-pill partner-pill-accent">
-            PY {numeral(partner.portfolio_yield).format('0.0')}%
-          </span>
-        ) : null}
-      </div>
-
       <div className="row">
         <div className="col-lg-6">
-          <dl className="row small">
-            <dt className="col-sm-5">Rating</dt>
-            <dd className="col-sm-7">
-              {partner.rating != null ? (
-                <span className={`partner-pill ${metricPillClass(Number(partner.rating), false)}`}>
-                  {partner.rating}
-                </span>
-              ) : 'N/A'}
-            </dd>
-
+          <dl className="dl-horizontal">
+            <dt>Rating</dt>
+            <dd>{partner.rating}</dd>
             {partner.status !== 'active' && (
               <>
-                <dt className="col-sm-5">Status</dt>
-                <dd className="col-sm-7 text-capitalize">{partner.status}</dd>
+                <dt>Status</dt>
+                <dd style={{ textTransform: 'capitalize' }}>{partner.status}</dd>
               </>
             )}
-
-            <dt className="col-sm-5">Start Date</dt>
-            <dd className="col-sm-7">
+            <dt>Start Date</dt>
+            <dd>
               {new Date(partner.start_date).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric',
               })}
             </dd>
-
-            <dt className="col-sm-5">
-              {partner.countries?.length === 1 ? 'Country' : 'Countries'}
-            </dt>
-            <dd className="col-sm-7">{countryNames}</dd>
-
-            <dt className="col-sm-5">Delinquency</dt>
-            <dd className="col-sm-7">
-              <span className={`partner-pill ${metricPillClass(partner.delinquency_rate)}`}>
-                {numeral(partner.delinquency_rate).format('0.000')}%
-              </span>
+            <dt>{partner.countries?.length === 1 ? 'Country' : 'Countries'}</dt>
+            <dd>{countryNames}</dd>
+            <dt>Delinquency</dt>
+            <dd>
+              {numeral(partner.delinquency_rate).format('0.000')}%{' '}
+              {(partner as unknown as { delinquency_rate_note?: string }).delinquency_rate_note}
             </dd>
-
-            <dt className="col-sm-5">Loans at Risk Rate</dt>
-            <dd className="col-sm-7">
-              <span className={`partner-pill ${metricPillClass(partner.loans_at_risk_rate)}`}>
-                {numeral(partner.loans_at_risk_rate).format('0.000')}%
-              </span>
+            <dt>Loans at Risk Rate</dt>
+            <dd>{numeral(partner.loans_at_risk_rate).format('0.000')}%</dd>
+            <dt>Default</dt>
+            <dd>
+              {numeral(partner.default_rate).format('0.000')}%{' '}
+              {(partner as unknown as { default_rate_note?: string }).default_rate_note}
             </dd>
-
-            <dt className="col-sm-5">Default</dt>
-            <dd className="col-sm-7">
-              <span className={`partner-pill ${metricPillClass(partner.default_rate)}`}>
-                {numeral(partner.default_rate).format('0.000')}%
-              </span>
+            <dt>Total Raised</dt>
+            <dd>${numeral((partner as unknown as { total_amount_raised?: number }).total_amount_raised).format('0,0')}</dd>
+            <dt>Loans</dt>
+            <dd>{numeral(partner.loans_posted).format('0,0')}</dd>
+            <dt>Portfolio Yield</dt>
+            <dd>
+              {numeral(partner.portfolio_yield).format('0.0')}%{' '}
+              {(partner as unknown as { portfolio_yield_note?: string }).portfolio_yield_note}
             </dd>
-
-            <dt className="col-sm-5">Loans Posted</dt>
-            <dd className="col-sm-7">{numeral(partner.loans_posted).format('0,0')}</dd>
-
-            <dt className="col-sm-5">Portfolio Yield</dt>
-            <dd className="col-sm-7">
-              {partner.portfolio_yield != null
-                ? <span className="partner-pill partner-pill-accent">{numeral(partner.portfolio_yield).format('0.0')}%</span>
-                : '(unknown)'}
-            </dd>
-
-            <dt className="col-sm-5">Profitability</dt>
-            <dd className="col-sm-7">
-              {partner.profitability != null
-                ? <span className="partner-pill partner-pill-accent">{numeral(partner.profitability).format('0.0')}%</span>
-                : '(unknown)'}
-            </dd>
-
-            <dt className="col-sm-5">Charges Fees/Interest</dt>
-            <dd className="col-sm-7">
-              <span className={`partner-pill ${partner.charges_fees_and_interest ? 'partner-pill-warn' : 'partner-pill-good'}`}>
-                {partner.charges_fees_and_interest ? 'Yes' : 'No'}
-              </span>
-            </dd>
-
-            <dt className="col-sm-5">Avg Loan/Cap Income</dt>
-            <dd className="col-sm-7">
-              {numeral(partner.average_loan_size_percent_per_capita_income).format('0.00')}%
-            </dd>
-
-            <dt className="col-sm-5">Currency Ex Loss</dt>
-            <dd className="col-sm-7">
-              {numeral(partner.currency_exchange_loss_rate).format('0.000')}%
-            </dd>
+            <dt>Profitability</dt>
+            {partner.profitability != null ? (
+              <dd>{numeral(partner.profitability).format('0.0')}%</dd>
+            ) : (
+              <dd>(unknown)</dd>
+            )}
+            <dt>Charges Fees / Interest</dt>
+            <dd>{partner.charges_fees_and_interest ? 'Yes' : 'No'}</dd>
+            <dt>Avg Loan/Cap Income</dt>
+            <dd>{numeral(partner.average_loan_size_percent_per_capita_income).format('0.00')}%</dd>
+            <dt>Currency Ex Loss</dt>
+            <dd>{numeral(partner.currency_exchange_loss_rate).format('0.000')}%</dd>
+            {(partner as unknown as { url?: string }).url ? (
+              <>
+                <dt>Website</dt>
+                <dd>
+                  <a href={(partner as unknown as { url?: string }).url} target="_blank" rel="noreferrer">
+                    {(partner as unknown as { url?: string }).url}
+                  </a>
+                </dd>
+              </>
+            ) : null}
           </dl>
         </div>
 
@@ -223,7 +171,7 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
 
       {partner.kl_sp && partner.kl_sp.length > 0 && partner.social_performance_strengths && (
         <div className="mt-3">
-          <h4>Social Performance Strengths</h4>
+          <h3>Social Performance Strengths</h3>
           <ul>
             {partner.social_performance_strengths.map((sp, i) => (
               <li key={i}>
@@ -238,25 +186,20 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
 
       {showAtheistResearch && atheistScore && (
         <div className="mt-3">
-          <h4>A+ Team Research</h4>
-          <dl className="row small">
-            <dt className="col-sm-4">Secular Rating</dt>
-            <dd className="col-sm-8">{atheistScore.secularRating}</dd>
-
-            <dt className="col-sm-4">Religious Affiliation</dt>
-            <dd className="col-sm-8">{atheistScore.religiousAffiliation}</dd>
-
-            <dt className="col-sm-4">Comments on Secular Rating</dt>
-            <dd className="col-sm-8">{atheistScore.commentsOnSecularRating}</dd>
-
-            <dt className="col-sm-4">Social Rating</dt>
-            <dd className="col-sm-8">{atheistScore.socialRating}</dd>
-
-            <dt className="col-sm-4">Comments on Social Rating</dt>
-            <dd className="col-sm-8">{atheistScore.commentsOnSocialRating}</dd>
-
-            <dt className="col-sm-4">Review Comments</dt>
-            <dd className="col-sm-8">{atheistScore.reviewComments}</dd>
+          <h3>A+ Team Research</h3>
+          <dl className="dl-horizontal">
+            <dt>Secular Rating</dt>
+            <dd>{atheistScore.secularRating}</dd>
+            <dt>Religious Affiliation</dt>
+            <dd>{atheistScore.religiousAffiliation}</dd>
+            <dt>Comments on Rating</dt>
+            <dd>{atheistScore.commentsOnSecularRating}</dd>
+            <dt>Social Rating</dt>
+            <dd>{atheistScore.socialRating}</dd>
+            <dt>Comments on Rating</dt>
+            <dd>{atheistScore.commentsOnSocialRating}</dd>
+            <dt>Review Comments</dt>
+            <dd>{atheistScore.reviewComments}</dd>
           </dl>
         </div>
       )}
