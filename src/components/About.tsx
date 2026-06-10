@@ -45,7 +45,7 @@ export default function About() {
           <p>
             KivaLens is a free tool that gives you powerful ways to search for loans
             on <KivaLink path="">Kiva.org</KivaLink>. Find loans by country, sector,
-            repayment speed, partner quality, and much more - then add them to your
+            repayment speed, partner quality, and much more — then add them to your
             basket and check out on Kiva.
           </p>
 
@@ -56,7 +56,7 @@ export default function About() {
                 <KivaLink path="invitedby/nuclearspike">Kiva</KivaLink> is a
                 non-profit where you lend as little as $25 to borrowers around the
                 world. Borrowers repay over time (over 97% repayment rate) and you
-                can re-lend that money to someone else. It&apos;s not a donation - it&apos;s
+                can re-lend that money to someone else. It&apos;s not a donation — it&apos;s
                 a loan that makes a real difference.
               </p>
             </>
@@ -65,21 +65,21 @@ export default function About() {
           <h3>Quick Start</h3>
           <ol className="spacedList">
             <li>
-              <b>Search for loans</b> - Use the Search tab. The criteria panel on the
+              <b>Search for loans</b> — Use the Search tab. The criteria panel on the
               left lets you filter by country, sector, repayment terms, partner risk,
               and dozens of other options. Results update instantly as you change
               filters.
             </li>
             <li>
-              <b>Review a loan</b> - Click any loan in the list to see details,
+              <b>Review a loan</b> — Click any loan in the list to see details,
               repayment schedule, and partner information on the right.
             </li>
             <li>
-              <b>Lend</b> - Click &quot;Lend&quot; on loans you like. Use &quot;Bulk Add&quot;
+              <b>Lend</b> — Click &quot;Lend&quot; on loans you like. Use &quot;Bulk Add&quot;
               {' '}to add many at once.
             </li>
             <li>
-              <b>Check out on Kiva</b> - Go to the Basket tab and click &quot;Transfer to
+              <b>Check out on Kiva</b> — Go to the Basket tab and click &quot;Transfer to
               Kiva&quot; to complete your loans on Kiva&apos;s site.
             </li>
           </ol>
@@ -116,7 +116,7 @@ export default function About() {
             doesn&apos;t account for when the loan was posted or disbursed. KivaLens
             sorts by <b>final repayment date relative to today</b>, giving you a true
             picture of when you&apos;ll get your money back. You can also sort by when
-            you&apos;ll have 50% or 75% repaid - useful for finding loans that pay back
+            you&apos;ll have 50% or 75% repaid — useful for finding loans that pay back
             sooner even if the final date is the same.
           </p>
 
@@ -137,7 +137,7 @@ export default function About() {
 
           <h3>Partners Tab</h3>
           <p>
-            Browse all Kiva field partners - active, closed, and paused. Filter by
+            Browse all Kiva field partners — active, closed, and paused. Filter by
             country, risk rating, delinquency rate, religion, and more. Click &quot;Show
             Loans&quot; to jump to the Search tab filtered to that partner&apos;s
             fundraising loans.
@@ -174,7 +174,7 @@ export default function About() {
             </li>
             <li>
               <b>Default Rates:</b> All partners have some defaults. A 0% default rate
-              usually means the partner covers losses - good for risk-averse lenders.
+              usually means the partner covers losses — good for risk-averse lenders.
             </li>
             <li>
               <b>Portfolio Yield:</b> High PY% doesn&apos;t necessarily mean predatory

@@ -225,6 +225,18 @@ export function SavedSearches() {
     setChecked({})
   }, [])
 
+  const handleExportAll = useCallback(() => {
+    const data: Record<string, SavedSearch | undefined> = {}
+    searches.forEach((name) => { data[name] = getSavedSearch(name) })
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'kivalens-saved-searches.json'
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [searches, getSavedSearch])
+
   const handleExportSelected = useCallback(() => {
     if (checkedNames.length === 0) {
       window.alert('No searches checked.')
@@ -375,8 +387,8 @@ export function SavedSearches() {
           <h4 style={{ marginTop: 5, marginBottom: 8 }}>Saved Searches ({searches.length})</h4>
           <div style={{ marginBottom: 6 }}>
             <ButtonGroup size="sm">
-              <Button variant="outline-secondary" onClick={handleSelectAll}>Select All</Button>
-              <Button variant="outline-secondary" onClick={handleSelectNone}>Select None</Button>
+              <Button onClick={handleSelectAll}>Select All</Button>
+              <Button onClick={handleSelectNone}>Select None</Button>
             </ButtonGroup>
           </div>
           <div style={{ height: 'calc(100vh - 230px)', overflowY: 'auto' }}>
@@ -411,16 +423,17 @@ export function SavedSearches() {
           </div>
           <div style={{ paddingTop: 8, borderTop: '1px solid #ddd' }}>
             <ButtonGroup size="sm" className="mb-1">
-              <Button variant="outline-secondary" onClick={handleExportSelected} disabled={checkedNames.length === 0}>
+              <Button onClick={handleExportAll}>Export All</Button>
+              <Button onClick={handleExportSelected} disabled={checkedNames.length === 0}>
                 Export Checked ({checkedNames.length})
               </Button>
-              <Button variant="outline-secondary" onClick={handleShareSelected} disabled={checkedNames.length === 0}>
+              <Button onClick={handleShareSelected} disabled={checkedNames.length === 0}>
                 Share Checked
               </Button>
             </ButtonGroup>
             <div>
               <ButtonGroup size="sm">
-                <Button variant="outline-secondary" style={{ position: 'relative', overflow: 'hidden' }}>
+                <Button style={{ position: 'relative', overflow: 'hidden' }}>
                   Import File...
                   <input
                     type="file"
@@ -429,7 +442,7 @@ export function SavedSearches() {
                     style={{ position: 'absolute', top: 0, right: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }}
                   />
                 </Button>
-                <Button variant="outline-secondary" onClick={() => setShowImportModal(true)}>
+                <Button onClick={() => setShowImportModal(true)}>
                   Import JSON...
                 </Button>
               </ButtonGroup>
@@ -452,7 +465,7 @@ export function SavedSearches() {
                       autoFocus
                     />
                     <Button size="sm" variant="primary" onClick={handleDoRename} className="ms-2">Save</Button>
-                    <Button size="sm" variant="outline-secondary" onClick={() => setRenaming(false)} className="ms-1">Cancel</Button>
+                    <Button size="sm" onClick={() => setRenaming(false)} className="ms-1">Cancel</Button>
                   </span>
                 ) : (
                   selected
@@ -467,8 +480,8 @@ export function SavedSearches() {
 
               <ButtonGroup className="mb-3">
                 <Button variant="primary" onClick={() => handleShowLoans(selected)}>Show Loans</Button>
-                {!renaming ? <Button variant="outline-secondary" onClick={handleStartRename}>Rename</Button> : null}
-                <Button variant="outline-secondary" onClick={handleCopyJSON}>Copy JSON</Button>
+                {!renaming ? <Button onClick={handleStartRename}>Rename</Button> : null}
+                <Button onClick={handleCopyJSON}>Copy JSON</Button>
                 <Button variant="danger" onClick={() => handleDelete(selected)}>Delete</Button>
               </ButtonGroup>
 
@@ -548,7 +561,7 @@ export function SavedSearches() {
           >
             Import
           </Button>
-          <Button variant="outline-secondary" onClick={() => setShowImportModal(false)}>Cancel</Button>
+          <Button onClick={() => setShowImportModal(false)}>Cancel</Button>
         </Modal.Footer>
       </Modal>
     </div>

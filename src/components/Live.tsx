@@ -68,37 +68,37 @@ export default function Live() {
       <Row>
         <Col md={4}>
           <h3>Since session start</h3>
-          <dl className="row" style={{ fontSize: 'large' }}>
-            <dt className="col-sm-6">New Loans</dt>
-            <dd className="col-sm-6"><AnimInt value={totals.new_loans} /></dd>
+          <dl className="dl-horizontal" style={{ fontSize: 'large' }}>
+            <dt>New Loans</dt>
+            <dd><AnimInt value={totals.new_loans} /></dd>
 
-            <dt className="col-sm-6">Fully Funded</dt>
-            <dd className="col-sm-6"><AnimInt value={totals.funded_loans} /></dd>
+            <dt>Fully Funded</dt>
+            <dd><AnimInt value={totals.funded_loans} /></dd>
 
-            <dt className="col-sm-6">Expired</dt>
-            <dd className="col-sm-6"><AnimInt value={totals.expired_loans} /></dd>
+            <dt>Expired</dt>
+            <dd><AnimInt value={totals.expired_loans} /></dd>
 
-            <dt className="col-sm-6">Lending Total</dt>
-            <dd className="col-sm-6">$<AnimInt value={totals.funded_amount} /></dd>
+            <dt>Lending Total</dt>
+            <dd>$<AnimInt value={totals.funded_amount} /></dd>
           </dl>
         </Col>
         <Col md={4}>
           <h3>Fundraising Loans</h3>
-          <dl className="row" style={{ fontSize: 'large' }}>
-            <dt className="col-sm-6">Fundraising</dt>
-            <dd className="col-sm-6">$<AnimInt value={fundraisingAmount} /></dd>
+          <dl className="dl-horizontal" style={{ fontSize: 'large' }}>
+            <dt>Fundraising</dt>
+            <dd>$<AnimInt value={fundraisingAmount} /></dd>
 
-            <dt className="col-sm-6">Funded Amount</dt>
-            <dd className="col-sm-6">$<AnimInt value={fundedSum} /></dd>
+            <dt>Funded Amount</dt>
+            <dd>$<AnimInt value={fundedSum} /></dd>
 
-            <dt className="col-sm-6">In Baskets</dt>
-            <dd className="col-sm-6">$<AnimInt value={basketAmount} /></dd>
+            <dt>In Baskets</dt>
+            <dd>$<AnimInt value={basketAmount} /></dd>
 
-            <dt className="col-sm-6">Still Needed</dt>
-            <dd className="col-sm-6">$<AnimInt value={stillNeeded} /></dd>
+            <dt>Still Needed</dt>
+            <dd>$<AnimInt value={stillNeeded} /></dd>
 
-            <dt className="col-sm-6">Average Funded</dt>
-            <dd className="col-sm-6"><AnimInt value={avgPercentFunded} />%</dd>
+            <dt>Average Funded</dt>
+            <dd><AnimInt value={avgPercentFunded} />%</dd>
           </dl>
         </Col>
       </Row>

@@ -13,7 +13,6 @@ import {
 import numeral from 'numeral'
 import { req } from '../api/kivajs/req'
 import { LenderTeams } from '../api/kivajs/LenderTeams'
-import { showLenderIDModal } from '../lib/showLenderIdModal'
 import { useUtilsStore } from '../stores'
 
 interface Team {
@@ -183,18 +182,9 @@ export default function Teams() {
   if (!lenderId) {
     return (
       <Container className="py-3">
-        <Alert variant="warning">
-          Please set your Kiva Lender ID to use this feature.{' '}
-          <Alert.Link
-            href="#"
-            onClick={(e) => {
-              e.preventDefault()
-              showLenderIDModal()
-            }}
-          >
-            Set it now
-          </Alert.Link>
-          .
+        <Alert variant="danger">
+          Please set your Kiva Lender ID set on the Options page to use this
+          feature.
         </Alert>
       </Container>
     )
