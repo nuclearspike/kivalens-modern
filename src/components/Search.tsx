@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { Container, Col, Row, Alert, ButtonGroup, Button } from '../ui'
 import numeral from 'numeral'
 import { useLoanStore, useUtilsStore } from '../stores'
@@ -27,6 +27,19 @@ export function Search() {
   const [showCriteria, setShowCriteria] = useState(true)
   const [hasHadLoans, setHasHadLoans] = useState(false)
   const [showBulkAdd, setShowBulkAdd] = useState(false)
+
+  // "N loans" toast on every filter run, like the old react-notification bar
+  const [notification, setNotification] = useState('')
+  const firstFilterRun = useRef(true)
+  useEffect(() => {
+    if (firstFilterRun.current) {
+      firstFilterRun.current = false
+      if (filteredLoans.length === 0) return
+    }
+    setNotification(`${filteredLoans.length} loans`)
+    const timer = setTimeout(() => setNotification(''), 5000)
+    return () => clearTimeout(timer)
+  }, [filteredLoans])
 
   // Track whether we ever had results
   if (loanCount > 0 && !hasHadLoans) {
@@ -57,6 +70,11 @@ export function Search() {
   return (
     <Container fluid className="px-2">
       {showBulkAdd ? <BulkAddModal onHide={() => setShowBulkAdd(false)} /> : null}
+      {notification ? (
+        <div className="notification-bar">
+          <span className="notification-bar-message">{notification}</span>
+        </div>
+      ) : null}
       <Row>
         {/* Criteria panel */}
         {showCriteria && (
@@ -107,6 +125,7 @@ export function Search() {
             className="loan_list_container"
             items={filteredLoans}
             itemHeight={82}
+            height={900}
             renderItem={(loan) => <LoanListItem key={loan.id} loan={loan} />}
           />
         </Col>

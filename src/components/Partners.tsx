@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { Container, Button, Badge, ListGroup, Form, Row, Col } from '../ui'
-import Select from 'react-select'
+import Select from './KLSelect'
 import Slider from 'rc-slider'
 import numeral from 'numeral'
 import type { Partner } from '../types'

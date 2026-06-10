@@ -593,11 +593,34 @@ ul.spacedList li {
 }
 
 // ============================================================
-// Notification Bar
+// Notification Bar — "N loans" toast, styled like the old
+// react-notification snackbar (black bar, bottom-left)
 // ============================================================
 .notification-bar {
+  position: fixed;
+  // The old app's 2rem values resolved against Bootstrap 3's 10px
+  // html font-size — i.e. 20px, not 32px.
+  bottom: 20px;
+  left: 20px;
   z-index: 30000;
-  font-size: 2rem;
+  font-size: 20px;
+  padding: 8px 20px;
+  background-color: #212121;
+  color: #fafafa;
+  border-radius: 2px;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+  animation: kl-toast-in 300ms ease-out;
+}
+
+@keyframes kl-toast-in {
+  from {
+    transform: translateY(120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 // ============================================================
@@ -873,6 +896,83 @@ ul.spacedList li {
 
     .nav-item {
       flex-shrink: 0;
+    }
+  }
+}
+
+// ============================================================
+// react-select v5 restyled to match the original react-select v1
+// (KLSelect sets classNamePrefix="Select")
+// ============================================================
+.Select__control {
+  min-height: 36px;
+  border-color: #ccc !important;
+  border-radius: 4px;
+  box-shadow: none !important;
+
+  &:hover {
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06) !important;
+  }
+
+  &--is-focused {
+    border-color: #007eff !important;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 0 3px rgba(0, 126, 255, 0.1) !important;
+  }
+}
+
+.Select__indicator-separator {
+  display: none;
+}
+
+// v1-style gray triangle instead of the v5 chevron svg
+.Select__dropdown-indicator {
+  padding: 4px 8px !important;
+  color: #999;
+
+  svg {
+    display: none;
+  }
+
+  &::after {
+    content: '';
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-color: #999 transparent transparent;
+    border-style: solid;
+    border-width: 5px 5px 2.5px;
+  }
+
+  &:hover::after {
+    border-top-color: #666;
+  }
+}
+
+.Select__menu {
+  z-index: 1000 !important;
+}
+
+.Select__option {
+  padding: 8px 10px !important;
+}
+
+.Select__multi-value {
+  background-color: rgba(0, 126, 255, 0.08) !important;
+  border: 1px solid rgba(0, 126, 255, 0.24) !important;
+  border-radius: 2px !important;
+
+  .Select__multi-value__label {
+    color: #007eff !important;
+    font-size: 0.9em;
+  }
+
+  .Select__multi-value__remove {
+    border-left: 1px solid rgba(0, 126, 255, 0.24);
+    color: #007eff;
+
+    &:hover {
+      background-color: rgba(0, 113, 230, 0.08);
+      color: #0071e6;
     }
   }
 }

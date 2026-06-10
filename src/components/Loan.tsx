@@ -29,15 +29,19 @@ import { humanize } from '../lib/utils'
 interface RepaymentChartDatum {
   label: string
   amount: number
+  /** bar length as % of the largest repayment, like highcharts auto-scaling */
+  amountPct: number
   percent: number
 }
 
 function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
   const data: RepaymentChartDatum[] = useMemo(() => {
     if (!loan.kl_repayments?.length) return []
+    const maxAmount = Math.max(...loan.kl_repayments.map((p) => p.amount), 1)
     return loan.kl_repayments.map((p) => ({
       label: p.display,
       amount: p.amount,
+      amountPct: (p.amount * 100) / maxAmount,
       percent: p.percent ?? 0,
     }))
   }, [loan.kl_repayments])
@@ -66,12 +70,18 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
       {/* SINGLE combined chart: bars (amount) + area (cumulative %) */}
       <ResponsiveContainer width="100%" height={chartHeight}>
         <ComposedChart data={data} layout="vertical" margin={{ left: 40, right: 10, top: 5, bottom: 5 }}>
-          <XAxis xAxisId="amount" type="number" orientation="bottom" hide />
-          <XAxis xAxisId="percent" type="number" orientation="top" domain={[0, 100]} hide />
+          <XAxis type="number" domain={[0, 100]} hide />
           <YAxis dataKey="label" type="category" tick={{ fontSize: 9 }} width={60} />
-          <Tooltip formatter={(value, name) => name === 'Repayment' ? `$${Number(value).toFixed(2)}` : `${Number(value).toFixed(1)}%`} />
-          <Bar xAxisId="amount" dataKey="amount" fill="#4e79a7" name="Repayment" barSize={16} />
-          <Area xAxisId="percent" dataKey="percent" stroke="#2C8C5E" fill="#2C8C5E" fillOpacity={0.15} name="Cumulative %" />
+          <Tooltip
+            formatter={(value, name, item) =>
+              name === 'Repayment'
+                ? `$${Number((item?.payload as RepaymentChartDatum)?.amount ?? value).toFixed(2)}`
+                : `${Number(value).toFixed(1)}%`
+            }
+          />
+          {/* Highcharts default palette, as rendered by the original app */}
+          <Bar dataKey="amountPct" fill="#7cb5ec" name="Repayment" barSize={16} />
+          <Area dataKey="percent" stroke="#434348" fill="#434348" fillOpacity={0.75} name="Cumulative %" />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
@@ -190,6 +200,9 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
     </span>
   )
 
+  const timeAgo = (d: Date | string | number) =>
+    formatDistanceToNow(new Date(d), { addSuffix: true }).replace(/^(about|over|almost) /, '')
+
   const loanUrl = `https://www.kiva.org/lend/${loan.id}`
   const options = lendAmountOptions(loan.kl_still_needed ?? 0)
   const tags = loan.kls_tags ?? []
@@ -198,8 +211,8 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
 
   return (
     <div className="Loan">
-      {/* Header */}
-      <h4 className="mt-0 d-flex align-items-center flex-wrap gap-2">
+      {/* Header — h1 with the lend control floated right, as the original */}
+      <h1 style={{ marginTop: 0 }}>
         <a href={loanUrl} target="_blank" rel="noopener noreferrer" title="View on Kiva">
           <span
             style={{
@@ -213,21 +226,26 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
               textAlign: 'center',
               fontSize: 11,
               fontWeight: 700,
+              verticalAlign: 'middle',
+              marginRight: 6,
+              position: 'relative',
+              top: -2,
             }}
           >
             K
           </span>
         </a>
-        <span className="flex-grow-1">{loan.name}</span>
+        {loan.name}
 
         {inBasket ? (
-          <button className="btn btn-danger btn-sm" onClick={handleRemove}>
+          <button className="btn btn-danger float_right" onClick={handleRemove}>
             Remove from Basket
           </button>
         ) : (
           <span
-            className="d-inline-flex"
+            className="float_right"
             style={{
+              display: 'inline-flex',
               borderRadius: 6,
               overflow: 'hidden',
               border: '1px solid #2C8C5E',
@@ -273,7 +291,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
             </button>
           </span>
         )}
-      </h4>
+      </h1>
 
       {inBasket && (loan.kl_still_needed ?? 0) === 0 && (
         <div className="alert alert-warning py-1 mb-2">
@@ -309,7 +327,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
         )}
       </ul>
 
-      <div className="pt-3" key={detailVersion}>
+      <div className="ample-padding-top" key={detailVersion}>
         {/* Image tab */}
         {activeTab === 1 && (
           <div className="fullsizeImage">
@@ -339,15 +357,21 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
         {/* Details tab */}
         {activeTab === 2 && (
           <div>
-            {/* Funding progress bar */}
-            <div className="progress mb-2" style={{ height: 8 }}>
+            {/* Funding progress bar — striped Flatly success + warning */}
+            <div className="progress">
               <div
-                className="progress-bar bg-success"
-                style={{ width: `${Math.min(fundedPerc, 100)}%` }}
+                className="progress-bar progress-bar-striped"
+                style={{
+                  width: `${Math.min(fundedPerc, 100)}%`,
+                  backgroundColor: '#18bc9c',
+                }}
               />
               <div
-                className="progress-bar bg-warning"
-                style={{ width: `${Math.min(basketPerc, 100 - fundedPerc)}%` }}
+                className="progress-bar"
+                style={{
+                  width: `${Math.min(basketPerc, 100 - fundedPerc)}%`,
+                  backgroundColor: '#f39c12',
+                }}
               />
             </div>
 
@@ -358,8 +382,8 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
             <div className="d-flex gap-3">
               {/* Left detail column */}
               <div style={{ flex: '1 1 50%', fontSize: 13, lineHeight: 1.6, minWidth: 0 }}>
-                <div className="mb-2">
-                  <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Matches Saved Searches</div>
+                <div>
+                  <div className="detail-label">Matches Saved Searches</div>
                   <div>
                   {matchingNames.length > 0
                     ? matchingNames.map((name, i) => (
@@ -380,20 +404,20 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
                   </div>
                 </div>
 
-                <div className="mb-2">
-                  <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tags</div>
+                <div>
+                  <div className="detail-label">Tags</div>
                   <div>{tags.length ? tags.map((t) => humanize(t)).join(', ') : '(none)'}</div>
                 </div>
 
                 {themes.length > 0 && (
-                  <div className="mb-2">
-                    <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Themes</div>
+                  <div>
+                    <div className="detail-label">Themes</div>
                     <div>{themes.join(', ')}</div>
                   </div>
                 )}
 
-                <div className="mb-2">
-                  <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div>
+                  <div className="detail-label">
                     {loan.borrowers.length === 1 ? 'Borrower' : 'Borrowers'}
                   </div>
                   <div>
@@ -406,78 +430,67 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
                 </div>
 
                 {loan.kl_posted_date && (
-                  <div className="mb-2">
-                    <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Posted</div>
+                  <div>
+                    <div className="detail-label">Posted</div>
                     <div>
-                    {formatDate(new Date(loan.kl_posted_date), 'MMM d, yyyy')} (
-                    {formatDistanceToNow(new Date(loan.posted_date), { addSuffix: true })})
+                    {formatDate(new Date(loan.kl_posted_date), 'MMM d, yyyy @ h:mm a')} ({timeAgo(loan.posted_date)})
                     </div>
                   </div>
                 )}
 
                 {loan.status !== 'fundraising' && (
-                  <div className="mb-2">
-                    <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</div>
+                  <div>
+                    <div className="detail-label">Status</div>
                     <div>{humanize(loan.status)}</div>
                   </div>
                 )}
 
                 {loan.status === 'fundraising' && loan.kl_planned_expiration_date && (
-                  <div className="mb-2">
-                    <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Expires</div>
+                  <div>
+                    <div className="detail-label">Expires</div>
                     <div>
-                    {formatDate(new Date(loan.kl_planned_expiration_date), 'MMM d, yyyy')} (
-                    {formatDistanceToNow(new Date(loan.planned_expiration_date ?? ''), {
-                      addSuffix: true,
-                    })}
-                    )
+                    {formatDate(new Date(loan.kl_planned_expiration_date), 'MMM d, yyyy @ h:mm a')} ({timeAgo(loan.planned_expiration_date ?? '')})
                     </div>
                   </div>
                 )}
 
                 {loan.terms.disbursal_date && (
-                  <div className="mb-2">
-                    <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Disbursed</div>
+                  <div>
+                    <div className="detail-label">Disbursed</div>
                     <div>
-                    {formatDate(new Date(loan.terms.disbursal_date), 'MMM d, yyyy')} (
-                    {formatDistanceToNow(new Date(loan.terms.disbursal_date), {
-                      addSuffix: true,
-                    })}
-                    )
+                    {formatDate(new Date(loan.terms.disbursal_date), 'MMM d, yyyy')} ({timeAgo(loan.terms.disbursal_date)})
                     </div>
                   </div>
                 )}
 
                 {loan.status === 'fundraising' && loan.kls_repaid_in != null && (
-                  <div className="mb-2">
-                    <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Final Repayment In</div>
+                  <div>
+                    <div className="detail-label">Final Repayment In</div>
                     <div>{numeral(loan.kls_repaid_in).format('0.0')} months</div>
                   </div>
                 )}
 
                 {loan.status === 'fundraising' && (
-                  <div className="mt-1">
+                  <div style={{ marginTop: 4 }}>
                     {loan.kl_dollars_per_hour && (
-                      <div className="mb-2">
-                        <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px' }}>$/Hour</div>
-                        <div>${numeral(loan.kl_dollars_per_hour()).format('0.00')}</div>
+                      <div>
+                        <span className="detail-label">$/Hour</span>{' '}
+                        ${numeral(loan.kl_dollars_per_hour()).format('0.00')}
                       </div>
                     )}
-                    <div className="mb-2">
-                      <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Amount / Funded</div>
-                      <div>
-                        ${numeral(loan.loan_amount).format('0,0')}{' '}
-                        <span style={{ color: '#ccc' }}>|</span>{' '}
-                        ${numeral(loan.funded_amount).format('0,0')}
-                      </div>
+                    <div>
+                      <span className="detail-label">Amount</span>{' '}
+                      ${numeral(loan.loan_amount).format('0,0')}{' '}
+                      <span style={{ color: '#ccc' }}>|</span>{' '}
+                      <span className="detail-label">Funded</span>{' '}
+                      ${numeral(loan.funded_amount).format('0,0')}
                     </div>
-                    <div className="mb-2">
-                      <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px' }}>In Baskets / Still Needed</div>
-                      <div>
-                        ${numeral(loan.basket_amount).format('0,0')}{' '}
-                        <span style={{ color: '#ccc' }}>|</span>{' '}
-                        ${numeral(loan.kl_still_needed ?? 0).format('0,0')}
-                      </div>
+                    <div>
+                      <span className="detail-label">In Baskets</span>{' '}
+                      ${numeral(loan.basket_amount).format('0,0')}{' '}
+                      <span style={{ color: '#ccc' }}>|</span>{' '}
+                      <span className="detail-label">Still Needed</span>{' '}
+                      ${numeral(loan.kl_still_needed ?? 0).format('0,0')}
                     </div>
                   </div>
                 )}

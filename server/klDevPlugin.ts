@@ -291,9 +291,11 @@ function processLoan(raw: any): ProcessedLoan {
 
         if (!loan.kls_half_back && runningTotal >= amount50) {
           loan.kls_half_back = r.date
+          loan.kls_half_back_actual = parseFloat(percent.toFixed(2))
         }
         if (!loan.kls_75_back && runningTotal >= amount75) {
           loan.kls_75_back = r.date
+          loan.kls_75_back_actual = parseFloat(percent.toFixed(2))
         }
 
         loan.kl_repayments.push({

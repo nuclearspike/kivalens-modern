@@ -1487,9 +1487,15 @@ function sortLoans(loans: KivaLoan[], sortOption?: string | null): KivaLoan[] {
 
 let _instance: Loans | null = null
 
+function exposeForDebugging(instance: Loans) {
+  // The original app exposed the singleton as window.kivaloans.
+  ;(window as unknown as { kivaloans: Loans }).kivaloans = instance
+}
+
 export function getKivaLoans(): Loans {
   if (!_instance) {
     _instance = new Loans()
+    exposeForDebugging(_instance)
   }
   return _instance
 }
@@ -1499,6 +1505,7 @@ export function createKivaLoans(updateInterval?: number): Loans {
     _instance.kill()
   }
   _instance = new Loans(updateInterval)
+  exposeForDebugging(_instance)
   return _instance
 }
 

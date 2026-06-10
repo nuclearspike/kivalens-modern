@@ -71,12 +71,12 @@ export function Criteria() {
   return (
     <div>
       <div style={{ display: 'flex', gap: 4, marginBottom: 8, alignItems: 'center' }}>
-        <Button size="sm" variant="outline-secondary" onClick={handleClear} style={{ whiteSpace: 'nowrap' }}>
+        <Button size="sm" onClick={handleClear} style={{ whiteSpace: 'nowrap' }}>
           Reset
         </Button>
 
         <Dropdown onToggle={(isOpen) => { if (isOpen) refreshNames() }}>
-          <Dropdown.Toggle size="sm" variant="outline-primary" id="saved-search-dropdown" style={{ flex: 1 }}>
+          <Dropdown.Toggle size="sm" id="saved-search-dropdown" style={{ flex: 1 }}>
             {lastSwitch ? `'${lastSwitch}'` : 'Saved Searches'}
           </Dropdown.Toggle>
           <Dropdown.Menu style={{ maxHeight: 400, overflowY: 'auto', fontSize: 12 }}>

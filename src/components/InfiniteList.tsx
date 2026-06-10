@@ -5,6 +5,8 @@ interface InfiniteListProps<T> {
   items: T[]
   renderItem: (item: T, index: number) => ReactNode
   itemHeight: number
+  /** Fixed pixel height for the scroll container (the old app used 900). */
+  height?: number
   className?: string
   onLoadMore?: () => void
   hasMore?: boolean
@@ -20,6 +22,7 @@ export default function InfiniteList<T>({
   items,
   renderItem,
   itemHeight,
+  height,
   className,
   onLoadMore,
   hasMore = false,
@@ -90,7 +93,7 @@ export default function InfiniteList<T>({
       ref={containerRef}
       className={className}
       onScroll={handleScroll}
-      style={{ overflow: 'auto', position: 'relative', height: '100%' }}
+      style={{ overflow: 'auto', position: 'relative', height: height ?? '100%' }}
     >
       <div style={{ height: totalHeight, position: 'relative' }}>
         {visibleItems}

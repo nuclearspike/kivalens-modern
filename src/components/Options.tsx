@@ -93,6 +93,15 @@ export default function Options() {
                 <Button onClick={openLenderIdModal}>Set Kiva Lender ID</Button>
               )}
 
+              <p className="ample-padding-top">Your Lender ID enables:</p>
+              <ul className="spacedList">
+                <li><b>Exclude Loans I&apos;ve Made:</b> Hides loans you&apos;ve already funded so you don&apos;t accidentally lend twice to the same borrower.</li>
+                <li><b>Portfolio Balancing:</b> Filter by Partners, Countries, Sectors, and Activities relative to your existing portfolio.</li>
+                <li><b>Basket Pruning:</b> Automatically removes completed loans from your basket when you return to KivaLens.</li>
+                <li><b>Team Comparison:</b> Compare membership and lending across all your teams.</li>
+                <li><b>3D Loan Wall:</b> Visualize your portfolio at <a href="#/portfolio">wall</a>.</li>
+              </ul>
+
               {lenderObj ? (
                 <Row className="g-3 align-items-start pt-2">
                   <Col sm={3} md={2}>
@@ -187,17 +196,19 @@ export default function Options() {
             <Card.Body>
               <Form.Group className="mb-3">
                 <Form.Label>Default Lending Amount</Form.Label>
-                <Form.Select
-                  value={opts.default_lend_amount}
-                  onChange={(e) => setOpts({ default_lend_amount: parseInt(e.target.value, 10) })}
-                  style={{ maxWidth: 200 }}
-                >
-                  {LEND_AMOUNTS.map((amt) => (
-                    <option key={amt} value={amt}>
-                      ${amt}
-                    </option>
-                  ))}
-                </Form.Select>
+                <div>
+                  <select
+                    value={opts.default_lend_amount}
+                    onChange={(e) => setOpts({ default_lend_amount: parseInt(e.target.value, 10) })}
+                    style={{ padding: '4px 8px', fontSize: 14, borderRadius: 4, border: '1px solid #ccc' }}
+                  >
+                    {LEND_AMOUNTS.map((amt) => (
+                      <option key={amt} value={amt}>
+                        ${amt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </Form.Group>
               <Form.Check
                 type="checkbox"
@@ -220,10 +231,24 @@ export default function Options() {
                 readOnly
               />
               <p className="mt-2">
-                KivaLens pulls the A+ Team&apos;s MFI List and merges data that allows you to search
-                using their Secular (1-4) and Social ratings (1-4). A 1 in the Secular Score means
-                the partner is religion-based. This adds sliders to the Partner Criteria tab, a
-                Religion filter, and rating details on the Partner tab of each loan.
+                KivaLens pulls the{' '}
+                <a href="https://www.kiva.org/team/aplus" target="_blank" rel="noreferrer">A+ Team</a>
+                &apos;s (Atheists, Agnostics, Skeptics, Freethinkers, Secular Humanists and the
+                Non-Religious) MFI List from{' '}
+                <a
+                  href="https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/edit#gid=1"
+                  target="_blank"
+                  rel="noreferrer"
+                  title="View Google Doc"
+                >
+                  this Google Doc
+                </a>{' '}
+                and merges some of the data which allows you to search using their Secular (1-4) and
+                Social ratings (1-4) where a 1 represents a low score, so a 1 in the Secular Score
+                means that it is religion based. This adds 2 sliders to the Partner Criteria tab, a
+                Religion filter, and an additional section displaying and explaining the ratings on
+                the Partner tab of the loan. If a partner is not present in the MFI Research Data,
+                by default, it will show up in the results.
               </p>
             </Card.Body>
           </Card>

@@ -20,9 +20,6 @@ export default function LoanListItem({ loan }: LoanListItemProps) {
   const setSelectedId = useLoanStore((s) => s.setSelectedId)
 
   const isSelected = selectedId === loan.id
-  const fundedPercent = loan.loan_amount
-    ? Math.round((loan.funded_amount / loan.loan_amount) * 100)
-    : 0
 
   const handleClick = () => {
     setSelectedId(loan.id)
@@ -56,14 +53,6 @@ export default function LoanListItem({ loan }: LoanListItemProps) {
           <span className="loan-tag d-none d-lg-inline">{loan.activity}</span>
         </div>
         <div className="loan-use d-none d-lg-block">{loan.use}</div>
-        <div className="loan-progress">
-          <div className="progress" style={{ height: 4 }}>
-            <div
-              className="progress-bar bg-success"
-              style={{ width: `${fundedPercent}%` }}
-            />
-          </div>
-        </div>
       </div>
     </ListGroup.Item>
   )
