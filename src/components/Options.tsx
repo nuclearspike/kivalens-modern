@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Container, Card, Form, Button, Col, Row } from 'react-bootstrap'
+import { Container, Card, Form, Button, Col, Row } from '../ui'
 import { formatDistanceToNow } from 'date-fns'
 import { lsj } from '../lib/localStorage'
 import { useUtilsStore } from '../stores'

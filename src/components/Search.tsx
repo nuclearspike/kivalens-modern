@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Container, Col, Row, Alert, ButtonGroup, Button, ListGroup } from 'react-bootstrap'
+import { Container, Col, Row, Alert, ButtonGroup, Button, ListGroup } from '../ui'
 import numeral from 'numeral'
 import { useLoanStore, useUtilsStore } from '../stores'
 import { Criteria } from './Criteria'

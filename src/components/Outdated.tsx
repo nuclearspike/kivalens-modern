@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Container } from 'react-bootstrap'
+import { Container } from '../ui'
 
 export default function Outdated() {
   const navigate = useNavigate()

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Button, Dropdown } from 'react-bootstrap'
+import { Button, Dropdown } from '../ui'
 import { useCriteriaStore, useLoanStore } from '../stores'
 import { getKivaLoans } from '../api/kiva'
 import { CriteriaTabs } from './CriteriaTabs'

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { Row, Col, Tab, Tabs, Form, Dropdown, Card, Alert, OverlayTrigger, Popover } from 'react-bootstrap'
+import { Row, Col, Tab, Tabs, Form, Dropdown, Card, Alert, OverlayTrigger, Popover } from '../ui'
 import Select from 'react-select'
 import type { MultiValue, SingleValue } from 'react-select'
 import Slider from 'rc-slider'

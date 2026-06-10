@@ -1,5 +1,5 @@
 import cx from 'classnames'
-import { ListGroup } from 'react-bootstrap'
+import { ListGroup } from '../ui'
 import { useLoanStore } from '../stores'
 import type { KivaLoan } from '../types'
 import KivaImage from './KivaImage'

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Card, ProgressBar } from 'react-bootstrap'
+import { Card, ProgressBar } from '../ui'
 import { useLoanStore } from '../stores'
 
 /**

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
-import { Col, Row, Button, ButtonGroup, ListGroup, Card, Modal, Alert, Form } from 'react-bootstrap'
+import { Col, Row, Button, ButtonGroup, ListGroup, Card, Modal, Alert, Form } from '../ui'
 import numeral from 'numeral'
 import { useCriteriaStore, useLoanStore } from '../stores'
 import { getKivaLoans } from '../api/kiva'

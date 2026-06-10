@@ -1,4 +1,4 @@
-import { Container, Alert, Button } from 'react-bootstrap'
+import { Container, Alert, Button } from '../ui'
 import { isRouteErrorResponse, useRouteError } from 'react-router-dom'
 import KLNav from './KLNav'
 import KLFooter from './KLFooter'

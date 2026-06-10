@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Container } from 'react-bootstrap'
+import { Container } from '../ui'
 import { useLoanStore } from '../stores'
 import type { KivaLoan } from '../types'
 

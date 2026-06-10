@@ -1,4 +1,4 @@
-import { Container, Tabs, Tab } from 'react-bootstrap'
+import { Container, Tabs, Tab } from '../ui'
 import { Link } from 'react-router-dom'
 import { showLenderIDModal } from '../lib/showLenderIdModal'
 import { useUtilsStore } from '../stores'

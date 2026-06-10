@@ -1,4 +1,4 @@
-import { Container, Row, Col } from 'react-bootstrap'
+import { Container, Row, Col } from '../ui'
 import { Link } from 'react-router-dom'
 
 export default function KLFooter() {

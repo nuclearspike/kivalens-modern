@@ -1,5 +1,5 @@
 import { useLocation, Link } from 'react-router-dom'
-import { Navbar, Nav, Badge, Container } from 'react-bootstrap'
+import { Navbar, Nav, Badge, Container } from '../ui'
 import { useLoanStore } from '../stores'
 
 export default function KLNav() {

@@ -1,4 +1,4 @@
-import { Container, Card } from 'react-bootstrap'
+import { Container, Card } from '../ui'
 
 function NewTabLink({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) {
   return (

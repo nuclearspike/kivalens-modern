@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { Container, Button, Badge, ListGroup, Form, Row, Col } from 'react-bootstrap'
+import { Container, Button, Badge, ListGroup, Form, Row, Col } from '../ui'
 import Select from 'react-select'
 import Slider from 'rc-slider'
 import numeral from 'numeral'

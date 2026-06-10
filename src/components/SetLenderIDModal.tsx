@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Alert, Button, Form, Modal } from 'react-bootstrap'
+import { Alert, Button, Form, Modal } from '../ui'
 import { getKivaLoans } from '../api/kiva'
 import { showLenderIDModal } from '../lib/showLenderIdModal'
 import { useUtilsStore } from '../stores'

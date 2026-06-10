@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Container, Alert, Button, Form } from 'react-bootstrap'
+import { Container, Alert, Button, Form } from '../ui'
 import { useCriteriaStore } from '../stores'
 import { getKivaLoans, defaultKivaData } from '../api/kiva'
 

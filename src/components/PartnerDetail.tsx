@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Badge, Button } from 'react-bootstrap'
+import { Badge, Button } from '../ui'
 import numeral from 'numeral'
 import type { Partner } from '../types'
 import { useLoanStore, useCriteriaStore } from '../stores'
