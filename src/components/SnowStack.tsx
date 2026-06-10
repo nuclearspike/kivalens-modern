@@ -308,6 +308,36 @@ export function Component() {
                         </a>
                       </div>
                     ))}
+                    {/* Mirrored reflection of the wall below the bottom row */}
+                    <div
+                      className="view"
+                      style={{
+                        transform: `scaleY(-1) translate3d(0, ${-dims.CYSPACING * ROWS * 2 - 1}px, 0)`,
+                      }}
+                    >
+                      {cells.map(({ image, x, y }) => (
+                        <div
+                          key={`r-${image.id}`}
+                          className="cell view"
+                          style={{
+                            width: dims.CWIDTH,
+                            height: dims.CHEIGHT,
+                            transform: `translate3d(${x}px, ${y}px, 0)`,
+                          }}
+                        >
+                          <img
+                            className="media reflection"
+                            src={image.thumb}
+                            alt=""
+                            style={{ opacity: 0 }}
+                            ref={(el) => {
+                              if (el && el.complete && el.naturalWidth) fitImage(el, dims)
+                            }}
+                            onLoad={(e) => fitImage(e.currentTarget, dims)}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
