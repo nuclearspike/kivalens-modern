@@ -97,6 +97,41 @@ const SECTOR_OPTIONS: SelectOption[] = [
   'Services', 'Transportation', 'Wholesale',
 ].map((s) => ({ value: s, label: s }))
 
+// Kiva's full activity taxonomy (from the original app)
+const ACTIVITY_OPTIONS: SelectOption[] = [
+  'Agriculture', 'Air Conditioning', 'Animal Sales', 'Arts', 'Auto Repair', 'Bakery',
+  'Balut-Making', 'Barber Shop', 'Beauty Salon', 'Beverages', 'Bicycle Repair', 'Bicycle Sales',
+  'Blacksmith', 'Bookbinding', 'Bookstore', 'Bricks', 'Butcher Shop', 'Cafe', 'Call Center',
+  'Carpentry', 'Catering', 'Cattle', 'Cement', 'Cereals', 'Charcoal Sales', 'Cheese Making',
+  'Child Care', 'Cleaning Services', 'Cloth & Dressmaking Supplies', 'Clothing',
+  'Clothing Sales', 'Cobbler', 'Communications', 'Computers', 'Construction',
+  'Construction Supplies', 'Consumer Goods', 'Cosmetics Sales', 'Crafts', 'Dairy',
+  'Day Care/Adult Care', 'Decorations Sales', 'Dental', 'Education provider', 'Electrical Goods',
+  'Electrician', 'Electronics Repair', 'Electronics Sales', 'Embroidery', 'Energy',
+  'Entertainment', 'Farm Supplies', 'Farming', 'Film', 'Fish Selling', 'Fishing', 'Florist',
+  'Flowers', 'Food', 'Food Market', 'Food Production/Sales', 'Food Stall', 'Fruits & Vegetables',
+  'Fuel/Firewood', 'Funeral Expenses', 'Furniture Making', 'Games', 'General Store',
+  'Goods Distribution', 'Grocery Store', 'Hardware', 'Health', 'Higher education costs',
+  'Home Appliances', 'Home Energy', 'Home Products Sales', 'Hotel', 'Internet Cafe', 'Jewelry',
+  'Knitting', 'Land Rental', 'Landscaping/Gardening', 'Laundry', 'Liquor Store / Off-License',
+  'Livestock', 'Machine Shop', 'Machinery Rental', 'Manufacturing', 'Medical Clinic',
+  'Metal Shop', 'Milk Sales', 'Mobile Phones', 'Motorcycle Repair', 'Motorcycle Transport',
+  'Movie Tapes & DVDs', 'Music Discs & Tapes', 'Musical Instruments', 'Musical Performance',
+  'Natural Medicines', 'Office Supplies', 'Other', 'Paper Sales', 'Party Supplies', 'Patchwork',
+  'Perfumes', 'Personal Housing Expenses', 'Personal Medical Expenses',
+  'Personal Products Sales', 'Personal Purchases', 'Pharmacy', 'Phone Accessories',
+  'Phone Repair', 'Phone Use Sales', 'Photography', 'Pigs', 'Plastics Sales', 'Poultry',
+  'Primary/secondary school costs', 'Printing', 'Property', 'Pub', 'Quarrying',
+  'Recycled Materials', 'Recycling', 'Religious Articles', 'Renewable Energy Products',
+  'Renewable Energy Products', 'Repair/Mechanic', 'Restaurant', 'Restaurant/Caterer', 'Retail',
+  'Rickshaw', 'Secretarial Services', 'Services', 'Sewing', 'Shoe Sales', 'Social Enterprise',
+  'Soft Drinks', 'Souvenir Sales', 'Spare Parts', 'Sporting Good Sales', 'Tailoring', 'Taxi',
+  'Textiles', 'Timber Sales', 'Tourism', 'Transportation', 'Traveling Sales', 'Upholstery',
+  'Used Clothing', 'Used Shoes', 'Utilities', 'Vehicle', 'Vehicle Repairs', 'Veterinary Sales',
+  'Waste Management', 'Water Distribution', 'Weaving', 'Wedding Expenses', 'Well digging',
+  'Wholesale',
+].map((s) => ({ value: s, label: s }))
+
 const TAG_OPTIONS: SelectOption[] = [
   { value: 'user_favorite', label: 'User Favorite' },
   { value: 'volunteer_like', label: 'Volunteer Like' },
@@ -839,6 +874,7 @@ function LoanCriteriaPanel({
   }> = [
     { key: 'country_code', label: 'Countries', options: COUNTRY_OPTIONS, isMulti: true, hasAan: true, showDistribution: true },
     { key: 'sector', label: 'Sectors', options: SECTOR_OPTIONS, isMulti: true, hasAan: true, showDistribution: true },
+    { key: 'activity', label: 'Activities', options: ACTIVITY_OPTIONS, isMulti: true, hasAan: true, showDistribution: true },
     { key: 'themes', label: 'Themes', options: THEME_OPTIONS, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
     { key: 'tags', label: 'Tags', options: TAG_OPTIONS, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
     { key: 'repayment_interval', label: 'Repayment Interval', options: REPAYMENT_INTERVAL_OPTIONS, isMulti: true, showDistribution: true },
@@ -1007,6 +1043,104 @@ function PortfolioCriteriaPanel({
 // Main component: CriteriaTabs
 // ---------------------------------------------------------------------------
 
+
+// ---------------------------------------------------------------------------
+// RSS tab — feed configuration + criteria JSON + feed URL (ported from the
+// original app; the URL targets the production KivaLens RSS endpoint)
+// ---------------------------------------------------------------------------
+
+function NewTabLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer">
+      {children}
+    </a>
+  )
+}
+
+function RSSPanel({ criteria }: { criteria: Criteria }) {
+  const prepForRSS = useCriteriaStore((s) => s.prepForRSS)
+  const [rssName, setRssName] = useState('')
+  const [rssLinkTo, setRssLinkTo] = useState('kiva')
+
+  const critRSS = useMemo(
+    () => ({ feed: { name: rssName, link_to: rssLinkTo }, ...prepForRSS(criteria) }),
+    [criteria, prepForRSS, rssName, rssLinkTo],
+  )
+  const critRSSUrl = encodeURIComponent(JSON.stringify(critRSS))
+
+  return (
+    <Row className="ample-padding-top">
+      <Col lg={12}>
+        <p>
+          With an RSS feed, you can use any number of RSS Readers (including some browsers or
+          browser extensions), or sites like{' '}
+          <NewTabLink href="http://www.ifttt.com">IFTTT (If This Then That)</NewTabLink> to set up
+          all sorts of actions in response to new items in the feed. You can set it to send you
+          emails, SMS, Instant Messages, flash your lights, turn on your sprinklers... You have a
+          lot of options! You can create as many RSS feeds as you want.{' '}
+          <NewTabLink href="https://ifttt.com/recipes/147561-rss-feed-to-email">
+            Create &apos;Recipe&apos; to send you an email when loans match your criteria
+          </NewTabLink>
+          .
+        </p>
+        <p>
+          It will only show the first 100 matching loans and it currently doesn&apos;t support
+          anything that requires any knowledge of your portfolio (excluding your fundraising loans
+          or portfolio balancing).
+        </p>
+        <Card>
+          <Card.Header>RSS Feed Details</Card.Header>
+          <Card.Body>
+            <Form.Group>
+              <Form.Label>Name (this will appear in your RSS feed reader)</Form.Label>
+              <Form.Control
+                type="text"
+                style={{ height: 38, minWidth: 50 }}
+                value={rssName}
+                onChange={(e) => setRssName(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Links in RSS go to</Form.Label>
+              <Form.Select value={rssLinkTo} onChange={(e) => setRssLinkTo(e.target.value)}>
+                <option value="kiva">Kiva</option>
+                <option value="kivalens">KivaLens</option>
+              </Form.Select>
+            </Form.Group>
+          </Card.Body>
+        </Card>
+        <Card>
+          <Card.Header>Your Settings</Card.Header>
+          <Card.Body>
+            <p>
+              These are the criteria options that will be used to generate your feed. Anything
+              related to your portfolio has been removed.
+            </p>
+            <pre>{JSON.stringify(critRSS, null, 2)}</pre>
+          </Card.Body>
+        </Card>
+        <Card>
+          <Card.Header>RSS Link</Card.Header>
+          <Card.Body>
+            <p>
+              Copy and Paste this entire URL into your RSS reader or use{' '}
+              <NewTabLink href="http://www.ifttt.com">If This Then That</NewTabLink> to create a
+              &quot;recipe&quot; to respond to new items in the news feed and either send you an
+              email or an SMS.
+            </p>
+            <textarea
+              style={{ width: '100%', height: 150 }}
+              readOnly
+              value={`https://www.kivalens.org/rss/${critRSSUrl}`}
+            />
+          </Card.Body>
+        </Card>
+      </Col>
+    </Row>
+  )
+}
+
+
 export function CriteriaTabs() {
   const lastKnown = useCriteriaStore((s) => s.lastKnown)
   const setCriteria = useCriteriaStore((s) => s.setCriteria)
@@ -1137,6 +1271,12 @@ export function CriteriaTabs() {
         <Tab eventKey="portfolio" title="Your Portfolio">
           <div className="pt-2">
             <PortfolioCriteriaPanel criteria={criteria} onUpdate={handleUpdate} />
+          </div>
+        </Tab>
+
+        <Tab eventKey="rss" title="RSS">
+          <div className="pt-2">
+            <RSSPanel criteria={criteria} />
           </div>
         </Tab>
       </Tabs>

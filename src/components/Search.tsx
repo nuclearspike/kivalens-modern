@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react'
-import { Container, Col, Row, Alert, ButtonGroup, Button, ListGroup } from '../ui'
+import { Container, Col, Row, Alert, ButtonGroup, Button } from '../ui'
 import numeral from 'numeral'
 import { useLoanStore, useUtilsStore } from '../stores'
 import { Criteria } from './Criteria'
 import LoanListItem from './LoanListItem'
 import Loan from './Loan'
-import DidYouKnow from './DidYouKnow'
+import InfiniteList from './InfiniteList'
 import LoadingLoansPanel from './LoadingLoansPanel'
 import BulkAddModal from './BulkAddModal'
 import { showLenderIDModal } from '../lib/showLenderIdModal'
@@ -49,10 +49,10 @@ export function Search() {
     [],
   )
 
-  // Column widths based on what's visible
-  const critCol = showCriteria ? 3 : 0
-  const listCol = showCriteria ? 4 : 5
-  const detailCol = selectedId ? (showCriteria ? 5 : 7) : (showCriteria ? 5 : 7)
+  // Column widths matching the old app's 4-3-5 grid
+  const critCol = showCriteria ? 4 : 0
+  const listCol = 3
+  const detailCol = showCriteria ? 5 : 9
 
   return (
     <Container fluid className="px-2">
@@ -66,51 +66,49 @@ export function Search() {
         )}
 
         {/* Loan list */}
-        <Col md={listCol} style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
-          <LoadingLoansPanel />
-          <ButtonGroup className="mb-2 mt-1 d-flex w-100">
-            <Button variant="outline-secondary" size="sm" onClick={toggleCriteria} className="w-50">
+        <Col md={listCol}>
+          <ButtonGroup className="top-only d-flex" style={{ marginBottom: 0 }}>
+            <Button onClick={toggleCriteria} className="w-50">
               {showCriteria ? 'Hide Criteria' : 'Show Criteria'}
             </Button>
-            <Button variant="outline-secondary" size="sm" onClick={openBulkAdd} className="w-50">
+            <Button onClick={openBulkAdd} className="w-50">
               Bulk Add
             </Button>
           </ButtonGroup>
 
           {secondaryStatus ? (
-            <Alert variant="warning" className="mb-1 py-1" style={{ fontSize: 12 }}>
+            <Alert variant="warning" className="not-rounded" style={{ marginBottom: 0 }}>
               More loans are still loading. Carry on. {secondaryStatus}
             </Alert>
           ) : null}
 
           {backgroundResyncState === 'started' ? (
-            <Alert variant="info" className="mb-1 py-1" style={{ fontSize: 12 }}>
+            <Alert variant="info" className="not-rounded" style={{ marginBottom: 0 }}>
               Continue using the site while the loans are refreshed...
             </Alert>
           ) : null}
 
           {loanCount > 0 ? (
-            <div className="loan-count-bar p-1 bg-light border-bottom mb-1" style={{ fontSize: 12 }}>
+            <div className="loan-count-bar">
               Showing {numeral(loanCount).format('0,0')} of{' '}
               {numeral(totalFundraising).format('0,0')} fundraising loans
             </div>
           ) : null}
 
           {hasHadLoans && loanCount === 0 && !downloading ? (
-            <Alert variant="info" className="py-2">
-              No matching loans. Loosen the criteria or click &quot;Reset&quot;.
+            <Alert variant="info" className="not-rounded-top" style={{ marginBottom: 0 }}>
+              There are no matching loans for your current criteria. Loosen the
+              criteria or click &quot;Reset&quot; to start over.
             </Alert>
           ) : null}
 
-          {downloading && loanCount === 0 ? (
-            <Alert variant="secondary" className="py-2">Loading loans...</Alert>
-          ) : null}
-
-          <ListGroup variant="flush">
-            {filteredLoans.slice(0, 200).map((loan) => (
-              <LoanListItem key={loan.id} loan={loan} />
-            ))}
-          </ListGroup>
+          <LoadingLoansPanel />
+          <InfiniteList
+            className="loan_list_container"
+            items={filteredLoans}
+            itemHeight={82}
+            renderItem={(loan) => <LoanListItem key={loan.id} loan={loan} />}
+          />
         </Col>
 
         {/* Loan detail panel / Welcome panel */}
@@ -119,17 +117,14 @@ export function Search() {
             <Loan loanId={selectedId} />
           ) : (
             <div className="p-3">
-              <h4>Welcome to KivaLens</h4>
-              <p>
-                Search for loans using the criteria on the left, then click a loan to
-                see its details here.
-              </p>
-              <ul style={{ paddingLeft: 18 }}>
-                <li>Click a loan to view details and repayment schedule</li>
-                <li>Double-click a loan to add it to your basket</li>
-                <li>Use &quot;Bulk Add&quot; to add many loans at once</li>
-                <li>Save your favorite filters with &quot;Saved Searches&quot;</li>
-              </ul>
+              <h2 style={{ marginTop: 0, color: '#2C8C5E' }}>Welcome to KivaLens</h2>
+              <h4>Quick Start</h4>
+              <ol style={{ paddingLeft: 18, lineHeight: 1.8 }}>
+                <li>Use the criteria on the left to filter loans</li>
+                <li>Click a loan to review details and repayment info</li>
+                <li>Click &quot;Lend&quot; on loans you like</li>
+                <li>Go to Basket tab to transfer loans to Kiva</li>
+              </ol>
               {!hasLenderId ? (
                 <div
                   style={{
@@ -152,8 +147,9 @@ export function Search() {
                   to hide loans you&apos;ve already funded and enable portfolio balancing.
                 </div>
               ) : null}
-              <hr />
-              <DidYouKnow />
+              <div style={{ marginTop: 16 }}>
+                <a href="#/about">Learn more</a>
+              </div>
             </div>
           )}
         </Col>

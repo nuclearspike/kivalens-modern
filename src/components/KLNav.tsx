@@ -1,10 +1,11 @@
 import { useLocation, Link } from 'react-router-dom'
 import { Navbar, Nav, Badge, Container } from '../ui'
-import { useLoanStore } from '../stores'
+import { useLoanStore, useUtilsStore } from '../stores'
 
 export default function KLNav() {
   const location = useLocation()
   const basketCount = useLoanStore((s) => s.basket.length)
+  const hasLenderId = Boolean(useUtilsStore((s) => s.lenderId))
 
   const isActive = (path: string) => location.pathname.startsWith(path)
 
@@ -21,8 +22,7 @@ export default function KLNav() {
               Search
             </Nav.Link>
             <Nav.Link as={Link} to="/basket" active={isActive('/basket')}>
-              Basket{' '}
-              {basketCount > 0 && <Badge bg="secondary">{basketCount}</Badge>}
+              Basket <Badge>{basketCount}</Badge>
             </Nav.Link>
             <Nav.Link as={Link} to="/partners" active={isActive('/partners')}>
               Partners
@@ -30,9 +30,11 @@ export default function KLNav() {
             <Nav.Link as={Link} to="/live" active={isActive('/live')}>
               Stats
             </Nav.Link>
-            <Nav.Link as={Link} to="/portfolio" active={isActive('/portfolio')}>
-              Wall
-            </Nav.Link>
+            {hasLenderId && (
+              <Nav.Link as={Link} to="/portfolio" active={isActive('/portfolio')}>
+                Wall
+              </Nav.Link>
+            )}
             <Nav.Link as={Link} to="/teams" active={isActive('/teams')}>
               Teams
             </Nav.Link>

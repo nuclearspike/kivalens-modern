@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Card, ProgressBar } from '../ui'
 import { useLoanStore } from '../stores'
+import DidYouKnow from './DidYouKnow'
 
 /**
  * Overlay panel shown while fundraising loans are being downloaded from Kiva.
@@ -31,12 +32,14 @@ export default function LoadingLoansPanel() {
 
   if (!state.show) return null
 
+  // Mirrors the old app's Panel-with-Modal.Header/Body/Footer structure
+  // (white header with large title, tip text under the progress bar).
   return (
-    <Card className="border-0 rounded-0">
-      <Card.Header>
-        <Card.Title>{state.title}</Card.Title>
-      </Card.Header>
-      <Card.Body>
+    <Card className="not-rounded-top">
+      <div className="modal-header">
+        <h4 className="modal-title">{state.title}</h4>
+      </div>
+      <div className="modal-body">
         <ProgressBar>
           <ProgressBar
             variant="info"
@@ -52,10 +55,11 @@ export default function LoadingLoansPanel() {
             key="details"
           />
         </ProgressBar>
-      </Card.Body>
-      <Card.Footer>
-        {state.progressLabel}
-      </Card.Footer>
+        <DidYouKnow />
+      </div>
+      <div className="modal-footer">
+        <span>{state.progressLabel}</span>
+      </div>
     </Card>
   )
 }

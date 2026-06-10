@@ -1,11 +1,12 @@
 // KivaLens Theme Variables
 // ========================
 
-// Brand colors
-$kl-green: #4faf4e;
+// Brand colors — single Kiva green, matching the original app's
+// $kiva-green (#2C8C5E) used for accents, badges, and basket states.
+$kl-green: #2c8c5e;
 $kl-green-light: #e8f5ee;
 $kl-green-dark: #1a3d2e;
-$kl-green-hover: #3d8f3c;
+$kl-green-hover: #236f4a;
 
 // Kiva-inspired palette
 $kl-kiva-green: #2c8c5e;
