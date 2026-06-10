@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "kivalens-dev",
+      "runtimeExecutable": "/opt/homebrew/bin/node",
+      "runtimeArgs": ["/Users/paulericksen/projects/kivalens-react/node_modules/.bin/vite", "--port", "5199"],
+      "port": 5199
+    }
+  ]
+}
