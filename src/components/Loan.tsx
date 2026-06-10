@@ -70,18 +70,35 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
       {/* SINGLE combined chart: bars (amount) + area (cumulative %) */}
       <ResponsiveContainer width="100%" height={chartHeight}>
         <ComposedChart data={data} layout="vertical" margin={{ left: 40, right: 10, top: 5, bottom: 5 }}>
-          <XAxis type="number" domain={[0, 100]} hide />
+          {/* dataMax domain mimics highcharts: largest repayment spans the plot */}
+          <XAxis xAxisId="amount" type="number" domain={[0, 'dataMax']} hide />
+          <XAxis xAxisId="pct" type="number" domain={[0, 100]} hide />
           <YAxis dataKey="label" type="category" tick={{ fontSize: 9 }} width={60} />
           <Tooltip
-            formatter={(value, name, item) =>
+            formatter={(value, name) =>
               name === 'Repayment'
-                ? `$${Number((item?.payload as RepaymentChartDatum)?.amount ?? value).toFixed(2)}`
+                ? `$${Number(value).toFixed(2)}`
                 : `${Number(value).toFixed(1)}%`
             }
           />
           {/* Highcharts default palette, as rendered by the original app */}
-          <Bar dataKey="amountPct" fill="#7cb5ec" name="Repayment" barSize={16} />
-          <Area dataKey="percent" stroke="#434348" fill="#434348" fillOpacity={0.75} name="Cumulative %" />
+          <Bar
+            xAxisId="amount"
+            dataKey="amount"
+            fill="#7cb5ec"
+            name="Repayment"
+            barSize={16}
+            isAnimationActive={false}
+          />
+          <Area
+            xAxisId="pct"
+            dataKey="percent"
+            stroke="#434348"
+            fill="#434348"
+            fillOpacity={0.75}
+            name="Cumulative %"
+            isAnimationActive={false}
+          />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
