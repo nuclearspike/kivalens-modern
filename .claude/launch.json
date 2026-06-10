@@ -2,10 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "kivalens-dev",
+      "name": "kivalens-modern",
       "runtimeExecutable": "/opt/homebrew/bin/node",
-      "runtimeArgs": ["/Users/paulericksen/projects/kivalens-react/node_modules/.bin/vite", "--port", "5199"],
-      "port": 5199
+      "runtimeArgs": ["/Users/paulericksen/projects/kivalens-modern/node_modules/.bin/vite", "/Users/paulericksen/projects/kivalens-modern", "--port", "5200"],
+      "port": 5200
     }
   ]
 }
