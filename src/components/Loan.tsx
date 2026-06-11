@@ -230,30 +230,8 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
     <div className="Loan">
       {/* Header — h1 with the lend control floated right, as the original */}
       <h1 style={{ marginTop: 0 }}>
-        <a href={loanUrl} target="_blank" rel="noopener noreferrer" title="View on Kiva">
-          <span
-            style={{
-              display: 'inline-block',
-              width: 18,
-              height: 18,
-              lineHeight: '18px',
-              borderRadius: '50%',
-              background: '#2C8C5E',
-              color: '#fff',
-              textAlign: 'center',
-              fontSize: 11,
-              fontWeight: 700,
-              verticalAlign: 'middle',
-              marginRight: 6,
-              position: 'relative',
-              top: -2,
-            }}
-          >
-            K
-          </span>
-        </a>
-        {loan.name}
-
+        {/* floated first so it always occupies the upper right, even when
+            the borrower name wraps */}
         {inBasket ? (
           <button className="btn btn-danger float_right" onClick={handleRemove}>
             Remove from Basket
@@ -308,6 +286,30 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
             </button>
           </span>
         )}
+
+        <a href={loanUrl} target="_blank" rel="noopener noreferrer" title="View on Kiva">
+          <span
+            style={{
+              display: 'inline-block',
+              width: 18,
+              height: 18,
+              lineHeight: '18px',
+              borderRadius: '50%',
+              background: '#2C8C5E',
+              color: '#fff',
+              textAlign: 'center',
+              fontSize: 11,
+              fontWeight: 700,
+              verticalAlign: 'middle',
+              marginRight: 6,
+              position: 'relative',
+              top: -2,
+            }}
+          >
+            K
+          </span>
+        </a>
+        {loan.name}
       </h1>
 
       {inBasket && (loan.kl_still_needed ?? 0) === 0 && (
