@@ -71,7 +71,12 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
 
       {/* SINGLE combined chart: bars (amount) + area (cumulative %) */}
       <ResponsiveContainer width="100%" height={chartHeight}>
-        <ComposedChart data={data} layout="vertical" margin={{ left: 40, right: 10, top: 5, bottom: 5 }}>
+        <ComposedChart
+          data={data}
+          layout="vertical"
+          margin={{ left: 40, right: 10, top: 5, bottom: 5 }}
+          barCategoryGap="25%"
+        >
           {/* dataMax domain mimics highcharts: largest repayment spans the plot */}
           <XAxis xAxisId="amount" type="number" domain={[0, 'dataMax']} hide />
           <XAxis xAxisId="pct" type="number" domain={[0, 100]} hide />
@@ -85,12 +90,12 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
             }
           />
           {/* Highcharts default palette, as rendered by the original app */}
+          {/* no barSize: bars scale with the row band (50% bar, 50% gap) */}
           <Bar
             xAxisId="amount"
             dataKey="amount"
             fill="#7cb5ec"
             name="Repayment"
-            barSize={8}
             isAnimationActive={false}
           />
           <Area

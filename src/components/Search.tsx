@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { useParams } from 'react-router-dom'
 import { Container, Col, Row, Alert, ButtonGroup, Button } from '../ui'
 import numeral from 'numeral'
 import { useLoanStore, useUtilsStore } from '../stores'
@@ -22,7 +23,15 @@ export function Search() {
   const loanCount = filteredLoans.length
   const totalFundraising = useLoanStore((s) => s.loanCount)
   const selectedId = useLoanStore((s) => s.selectedId)
+  const setSelectedId = useLoanStore((s) => s.setSelectedId)
+  const { id: routeLoanId } = useParams<{ id: string }>()
   const hasLenderId = Boolean(useUtilsStore((s) => s.lenderId))
+
+  // /search/loan/:id pre-selects the loan; plain /search shows the welcome
+  // panel. The URL is the source of truth for the right-hand panel.
+  useEffect(() => {
+    setSelectedId(routeLoanId ? parseInt(routeLoanId, 10) : null)
+  }, [routeLoanId, setSelectedId])
 
   const [showCriteria, setShowCriteria] = useState(true)
   const [hasHadLoans, setHasHadLoans] = useState(false)

@@ -39,8 +39,10 @@ export const router = createHashRouter([
         lazy: () => import('./components/Search').then(m => ({ Component: m.default })),
       },
       {
+        // Deep link renders the Search page with the loan pre-selected in
+        // the right panel, like the old app's nested route.
         path: 'search/loan/:id',
-        lazy: () => import('./components/Loan').then(m => ({ Component: m.default })),
+        lazy: () => import('./components/Search').then(m => ({ Component: m.default })),
       },
       {
         path: 'basket',

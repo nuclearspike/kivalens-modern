@@ -98,7 +98,12 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
           </div>
         ) : null}
         <ResponsiveContainer width="100%" height={chartHeight}>
-          <ComposedChart data={data} layout="vertical" margin={{ left: 10, right: 10, top: 5, bottom: 5 }}>
+          <ComposedChart
+            data={data}
+            layout="vertical"
+            margin={{ left: 10, right: 10, top: 5, bottom: 5 }}
+            barCategoryGap="25%"
+          >
             <XAxis
               xAxisId="amount"
               type="number"
@@ -122,12 +127,12 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
             <YAxis dataKey="label" type="category" tick={{ fontSize: 9 }} width={60} interval={0} />
             <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
             <Legend wrapperStyle={{ fontSize: 11 }} />
+            {/* no barSize: bars scale with the row band (50% bar, 50% gap) */}
             <Bar
               xAxisId="amount"
               dataKey="amount"
               fill="#e8871a"
               name="Monthly Repayment"
-              barSize={16}
               isAnimationActive={false}
             />
             <Area

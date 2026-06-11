@@ -17,13 +17,8 @@ export default function LoanListItem({ loan }: LoanListItemProps) {
   const inBasket = useLoanStore((s) => s.inBasket(loan.id))
   const addToBasket = useLoanStore((s) => s.addToBasket)
   const selectedId = useLoanStore((s) => s.selectedId)
-  const setSelectedId = useLoanStore((s) => s.setSelectedId)
 
   const isSelected = selectedId === loan.id
-
-  const handleClick = () => {
-    setSelectedId(loan.id)
-  }
 
   const handleDoubleClick = () => {
     const options = lendAmountOptions(loan.kl_still_needed ?? 0)
@@ -36,12 +31,13 @@ export default function LoanListItem({ loan }: LoanListItemProps) {
   return (
     <ListGroup.Item
       action
+      as="a"
+      href={`#/search/loan/${loan.id}`}
       className={cx('loan_list_item', {
         selected: isSelected,
         in_basket: inBasket,
         funded: loan.status !== 'fundraising',
       })}
-      onClick={handleClick}
       onDoubleClick={handleDoubleClick}
     >
       <KivaImage type="square" loan={loan} image_width={113} width={90} height={90} />
