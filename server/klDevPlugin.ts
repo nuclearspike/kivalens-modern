@@ -25,18 +25,28 @@ interface KLApiStart {
   descrLengths: number[]
 }
 
+interface KLBatch {
+  loanPages: Buffer[]        // gzipped JSON per page
+  keywordPages: Buffer[]     // gzipped JSON per page
+  klStart: KLApiStart
+  newestTime: number
+}
+
 interface KLState {
   ready: boolean
   batch: number
   klStart: KLApiStart | null
-  loanPages: Buffer[]        // gzipped JSON per page
-  keywordPages: Buffer[]     // gzipped JSON per page
+  batches: Map<number, KLBatch> // retained batches (latest 2), like cluster.js
   partnersGz: Buffer | null  // gzipped JSON
   allLoans: any[]            // full in-memory loans for GraphQL / since
   newestTime: number
 }
 
 const KL_PAGE_SPLITS = 4
+// Re-download + re-batch like the original master (which re-searched Kiva
+// every 5 min and re-packaged every 60s). One combined cycle is plenty in dev.
+const REFRESH_INTERVAL_MS = 10 * 60_000
+const RETAINED_BATCHES = 2
 const KIVA_API = 'https://api.kivaws.org/v1'
 const APP_ID = 'org.kiva.kivalens'
 
@@ -433,19 +443,26 @@ export function klDevServer(): Plugin {
     ready: false,
     batch: 0,
     klStart: null,
-    loanPages: [],
-    keywordPages: [],
+    batches: new Map(),
     partnersGz: null,
     allLoans: [],
     newestTime: 0,
   }
 
+  let building = false
+
   const log = (msg: string) => console.log(`[KL Dev] ${msg}`)
 
-  /** Background: download everything from Kiva and prep batches */
+  /** Download everything from Kiva and publish it as the next batch.
+   * Runs at startup and then every REFRESH_INTERVAL_MS, mirroring the
+   * original master's refresh + prepForRequests cycle. Each run naturally
+   * drops loans that are no longer fundraising (the search is
+   * status=fundraising). */
   async function prepareData() {
+    if (building) return
+    building = true
     try {
-      log('Starting data download from Kiva...')
+      log(state.batch === 0 ? 'Starting data download from Kiva...' : `Refreshing data (batch ${state.batch} -> ${state.batch + 1})...`)
       const startTime = Date.now()
 
       // Partners
@@ -499,26 +516,40 @@ export function klDevServer(): Plugin {
 
       const loanLengths: number[] = []
       const descrLengths: number[] = []
+      const loanPages: Buffer[] = []
+      const keywordPages: Buffer[] = []
 
       for (const chunk of loanChunks) {
         const json = JSON.stringify(chunk)
         loanLengths.push(json.length)
-        state.loanPages.push(await gzipAsync(json))
+        loanPages.push(await gzipAsync(json))
       }
 
       for (const chunk of kwChunks) {
         const json = JSON.stringify(chunk)
         descrLengths.push(json.length)
-        state.keywordPages.push(await gzipAsync(json))
+        keywordPages.push(await gzipAsync(json))
       }
 
-      state.batch = 1
-      state.klStart = {
-        batch: state.batch,
+      // Atomic publish: bump the batch, retain the last RETAINED_BATCHES
+      const batch = state.batch + 1
+      const klStart: KLApiStart = {
+        batch,
         pages: loanChunks.length,
         loanLengths,
         descrLengths,
       }
+      state.batches.set(batch, {
+        loanPages,
+        keywordPages,
+        klStart,
+        newestTime: state.newestTime,
+      })
+      for (const old of state.batches.keys()) {
+        if (old <= batch - RETAINED_BATCHES) state.batches.delete(old)
+      }
+      state.batch = batch
+      state.klStart = klStart
       state.ready = true
 
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
@@ -526,6 +557,8 @@ export function klDevServer(): Plugin {
       log(`  kl_api_start: ${JSON.stringify(state.klStart)}`)
     } catch (e) {
       log(`Data preparation failed: ${e}`)
+    } finally {
+      building = false
     }
   }
 
@@ -552,8 +585,10 @@ export function klDevServer(): Plugin {
     name: 'kl-dev-server',
 
     configureServer(server: ViteDevServer) {
-      // Start background download
+      // Start background download, then keep the dataset fresh
       prepareData()
+      const refreshTimer = setInterval(prepareData, REFRESH_INTERVAL_MS)
+      server.httpServer?.once('close', () => clearInterval(refreshTimer))
 
       // ------ /api/start — return kl_api_start metadata ------
       server.middlewares.use((req: IncomingMessage, res: ServerResponse, next: () => void) => {
@@ -573,28 +608,38 @@ export function klDevServer(): Plugin {
         // ------ /api/loans/:batch/:page ------
         const loanMatch = url.match(/^\/api\/loans\/(\d+)\/(\d+)$/)
         if (loanMatch) {
-          if (!state.ready) return send404(res)
+          const served = state.batches.get(parseInt(loanMatch[1], 10))
+          if (!state.ready || !served) return send404(res)
           const page = parseInt(loanMatch[2], 10)
           const idx = page - 1
-          if (idx < 0 || idx >= state.loanPages.length) return send404(res)
-          return sendGzip(res, state.loanPages[idx])
+          if (idx < 0 || idx >= served.loanPages.length) return send404(res)
+          return sendGzip(res, served.loanPages[idx])
         }
 
         // ------ /api/loans/:batch/keywords/:page ------
         const kwMatch = url.match(/^\/api\/loans\/(\d+)\/keywords\/(\d+)$/)
         if (kwMatch) {
-          if (!state.ready) return send404(res)
+          const served = state.batches.get(parseInt(kwMatch[1], 10))
+          if (!state.ready || !served) return send404(res)
           const page = parseInt(kwMatch[2], 10)
           const idx = page - 1
-          if (idx < 0 || idx >= state.keywordPages.length) return send404(res)
-          return sendGzip(res, state.keywordPages[idx])
+          if (idx < 0 || idx >= served.keywordPages.length) return send404(res)
+          return sendGzip(res, served.keywordPages[idx])
         }
 
         // ------ /api/since/:batch ------
+        // Loans (re)processed after the requested batch was built, in the
+        // same KLS shape as the batch pages. Mirrors cluster.js: 404 for an
+        // evicted batch, '[]' beyond 500 changes.
         const sinceMatch = url.match(/^\/api\/since\/(\d+)$/)
         if (sinceMatch) {
-          // In dev, there are no incremental updates — return empty
-          return sendJSON(res, [])
+          const served = state.batches.get(parseInt(sinceMatch[1], 10))
+          if (!served) return send404(res)
+          const changed = state.allLoans.filter(
+            (l: any) => new Date(l.kl_processed).getTime() > served.newestTime,
+          )
+          if (changed.length > 500) return sendJSON(res, [])
+          return sendJSON(res, changed.map((l: any) => compressLoan(l)))
         }
 
         // ------ /api/heartbeat/:install/:lender/:uptime ------

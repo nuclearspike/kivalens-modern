@@ -74,14 +74,23 @@ export function useKivaLensInit() {
       }
       }
 
-      // New loan added
-      if (msg.loan_added) {
+      // New loans discovered by the background resync
+      if (msg.new_loans) {
         store.setLoans(kl.loansFromKiva)
         store.filterLoans()
       }
 
-      // Loan no longer fundraising
+      // Background resync changed existing loans (funded amounts, etc.)
+      if (msg.background_updated) {
+        store.setLoans(kl.loansFromKiva)
+        store.filterLoans()
+      }
+
+      // Loan no longer fundraising: drop it from the list AND prune it from
+      // the basket (the original app's advertised "Basket Pruning")
       if (msg.loan_not_fundraising) {
+        const gone = msg.loan_not_fundraising as { id: number }
+        store.removeFromBasket(gone.id)
         store.setLoans(kl.loansFromKiva)
         store.filterLoans()
       }
