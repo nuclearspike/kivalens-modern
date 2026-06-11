@@ -34,6 +34,8 @@ interface RepaymentChartDatum {
   percent: number
 }
 
+
+
 function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
   const data: RepaymentChartDatum[] = useMemo(() => {
     if (!loan.kl_repayments?.length) return []
@@ -73,7 +75,8 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
           {/* dataMax domain mimics highcharts: largest repayment spans the plot */}
           <XAxis xAxisId="amount" type="number" domain={[0, 'dataMax']} hide />
           <XAxis xAxisId="pct" type="number" domain={[0, 100]} hide />
-          <YAxis dataKey="label" type="category" tick={{ fontSize: 9 }} width={60} />
+          {/* label every month like the original (9px, rows compress as months grow) */}
+          <YAxis dataKey="label" type="category" tick={{ fontSize: 9 }} width={60} interval={0} />
           <Tooltip
             formatter={(value, name) =>
               name === 'Repayment'
@@ -87,7 +90,7 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
             dataKey="amount"
             fill="#7cb5ec"
             name="Repayment"
-            barSize={16}
+            barSize={8}
             isAnimationActive={false}
           />
           <Area

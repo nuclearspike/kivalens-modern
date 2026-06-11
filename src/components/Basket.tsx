@@ -27,6 +27,8 @@ interface BasketRepaymentDatum {
   cumulativeAmount: number
 }
 
+
+
 function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
   const { data, skippedCount } = useMemo(() => {
     const monthMap = new Map<string, { amount: number; date: number }>()
@@ -117,7 +119,7 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
               label={{ value: 'Cumulative', position: 'insideTop', offset: -16, fontSize: 11 }}
               height={40}
             />
-            <YAxis dataKey="label" type="category" tick={{ fontSize: 9 }} width={60} />
+            <YAxis dataKey="label" type="category" tick={{ fontSize: 9 }} width={60} interval={0} />
             <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
             <Legend wrapperStyle={{ fontSize: 11 }} />
             <Bar

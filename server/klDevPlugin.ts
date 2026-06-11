@@ -300,7 +300,8 @@ function processLoan(raw: any): ProcessedLoan {
 
         loan.kl_repayments.push({
           date: r.date,
-          display: r.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          // 'MMM-yyyy' with a dash, matching the client-side ResultProcessors format
+          display: `${r.date.toLocaleDateString('en-US', { month: 'short' })}-${r.date.getFullYear()}`,
           amount: r.amount,
           percent,
         })
