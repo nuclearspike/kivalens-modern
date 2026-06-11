@@ -53,6 +53,11 @@ export const router = createHashRouter([
         lazy: () => import('./components/Partners'),
       },
       {
+        // Deep link renders the Partners page with the partner pre-selected
+        path: 'partners/:id',
+        lazy: () => import('./components/Partners'),
+      },
+      {
         path: 'saved',
         lazy: () => import('./components/SavedSearches').then(m => ({ Component: m.default })),
       },

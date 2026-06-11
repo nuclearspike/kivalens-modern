@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import { Container, Button, Badge, ListGroup, Form, Row, Col, Dropdown } from '../ui'
 import Select from './KLSelect'
 import Slider from 'rc-slider'
@@ -246,19 +247,18 @@ function PartnerListItem({
   partner,
   loanCount,
   selected,
-  onClick,
 }: {
   partner: Partner
   loanCount: number | null
   selected: boolean
-  onClick: () => void
 }) {
   const bg = !selected ? statusBg[partner.status] : undefined
   return (
     <ListGroup.Item
       action
+      as="a"
+      href={`#/partners/${partner.id}`}
       active={selected}
-      onClick={onClick}
       style={bg ? { backgroundColor: bg, position: 'relative' } : { position: 'relative' }}
     >
       <div>
@@ -308,6 +308,7 @@ export function Component() {
   const downloading = useLoanStore((s) => s.downloading)
 
   const [nameSearch, setNameSearch] = useState('')
+  const { id: routePartnerId } = useParams<{ id: string }>()
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null)
   const [partnerTick, setPartnerTick] = useState(0)
   const [filters, setFilters] = useState<PartnerFilters>({ status: 'active', status_all_any_none: 'any' })
@@ -323,6 +324,28 @@ export function Component() {
     }, 500)
     return () => clearInterval(timer)
   }, [downloading])
+
+  // /partners/:id pre-selects the partner; plain /partners shows the
+  // placeholder. The URL is the source of truth for the detail pane.
+  // Polls until the partner list has downloaded so cold deep links resolve.
+  useEffect(() => {
+    if (!routePartnerId) {
+      setSelectedPartner(null)
+      return
+    }
+    const wanted = parseInt(routePartnerId, 10)
+    const resolve = () => {
+      const kl = getKivaLoans()
+      const partner = (kl?.partnersFromKiva ?? []).find((p: Partner) => p.id === wanted)
+      if (partner) setSelectedPartner(partner)
+      return !!partner
+    }
+    if (resolve()) return
+    const timer = setInterval(() => {
+      if (resolve()) clearInterval(timer)
+    }, 500)
+    return () => clearInterval(timer)
+  }, [routePartnerId])
 
   const atheistOptionsReady = Boolean(getKivaLoans()?.atheistListProcessed)
 
@@ -526,7 +549,6 @@ export function Component() {
                   partner={partner}
                   loanCount={partner.status === 'active' ? loanCountMap[partner.id] ?? 0 : null}
                   selected={selectedPartner?.id === partner.id}
-                  onClick={() => setSelectedPartner(partner)}
                 />
               ))}
             </ListGroup>
