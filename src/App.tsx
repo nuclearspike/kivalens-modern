@@ -12,6 +12,7 @@ import OnNow from './components/OnNow'
 import Teams from './components/Teams'
 import RouteErrorBoundary from './components/RouteErrorBoundary'
 import SetLenderIDModal from './components/SetLenderIDModal'
+import DialogHost from './components/DialogHost'
 
 function AppLayout() {
   useKivaLensInit()
@@ -20,6 +21,7 @@ function AppLayout() {
     <div>
       <KLNav />
       <SetLenderIDModal />
+      <DialogHost />
       <Outlet />
       <KLFooter />
       <ScrollRestoration />

@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Container, Alert, Button, Form } from '../ui'
+import { showAlert } from '../lib/dialog'
 import { useCriteriaStore } from '../stores'
 import { getKivaLoans, defaultKivaData } from '../api/kiva'
 
@@ -66,7 +67,7 @@ export function Component() {
 
   const handlePush = () => {
     if (noneChecked) {
-      alert('Please check at least one box (Partners, Sectors, or Countries) to continue.')
+      void showAlert('Please check at least one box (Partners, Sectors, or Countries) to continue.')
       return
     }
     const payload: {
@@ -89,12 +90,12 @@ export function Component() {
           console.log('KLA reply:', reply),
         )
       } else {
-        alert(
+        void showAlert(
           'Chrome extension messaging is not available. Please install the Kiva Lender Assistant extension.',
         )
       }
     } catch {
-      alert(
+      void showAlert(
         'Could not communicate with the Kiva Lender Assistant extension. Make sure it is installed and enabled.',
       )
     }

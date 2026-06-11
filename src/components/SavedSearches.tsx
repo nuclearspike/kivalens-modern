@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react'
 import { Col, Row, Button, ButtonGroup, ListGroup, Card, Modal, Alert, Form } from '../ui'
 import numeral from 'numeral'
 import { useCriteriaStore, useLoanStore } from '../stores'
+import { showAlert, showConfirm, showPrompt } from '../lib/dialog'
 import { getKivaLoans } from '../api/kiva'
 import type { Criteria } from '../types'
 import type { SavedSearch } from '../stores/criteriaStore'
@@ -167,8 +168,13 @@ export function SavedSearches() {
   )
 
   const handleDelete = useCallback(
-    (name: string) => {
-      if (window.confirm(`Delete saved search "${name}"?`)) {
+    async (name: string) => {
+      const ok = await showConfirm(`Delete saved search "${name}"?`, {
+        title: 'Delete Saved Search',
+        confirmLabel: 'Delete',
+        danger: true,
+      })
+      if (ok) {
         deleteSearch(name)
         if (selected === name) setSelected(null)
         refreshList()
@@ -239,7 +245,7 @@ export function SavedSearches() {
 
   const handleExportSelected = useCallback(() => {
     if (checkedNames.length === 0) {
-      window.alert('No searches checked.')
+      void showAlert('No searches checked.')
       return
     }
     const data: Record<string, SavedSearch | undefined> = {}
@@ -253,9 +259,9 @@ export function SavedSearches() {
     URL.revokeObjectURL(url)
   }, [checkedNames, getSavedSearch])
 
-  const handleShareSelected = useCallback(() => {
+  const handleShareSelected = useCallback(async () => {
     if (checkedNames.length === 0) {
-      window.alert('No searches checked.')
+      void showAlert('No searches checked.')
       return
     }
     const arr = checkedNames.map((name) => {
@@ -269,9 +275,11 @@ export function SavedSearches() {
     const shareUrl = `${window.location.origin}/#/saved?importSS=${encoded}`
     if (navigator.clipboard) {
       void navigator.clipboard.writeText(shareUrl)
-      window.alert('Share link copied to clipboard! Send this link to other KivaLens users.')
+      void showAlert('Share link copied to clipboard! Send this link to other KivaLens users.', {
+        title: 'Share',
+      })
     } else {
-      window.prompt('Copy this share link:', shareUrl)
+      void showPrompt('Copy this share link:', { title: 'Share', defaultValue: shareUrl, multiline: true })
     }
   }, [checkedNames, getSavedSearch])
 
@@ -282,9 +290,9 @@ export function SavedSearches() {
     const data = JSON.stringify({ ...crit, name: selected }, null, 2)
     if (navigator.clipboard) {
       void navigator.clipboard.writeText(data)
-      window.alert('Copied to clipboard!')
+      void showAlert('Copied to clipboard!')
     } else {
-      window.prompt('Copy this JSON:', data)
+      void showPrompt('Copy this JSON:', { title: 'Copy JSON', defaultValue: data, multiline: true })
     }
   }, [selected, getSavedSearch])
 
@@ -297,7 +305,7 @@ export function SavedSearches() {
         try {
           const obj = JSON.parse(ev.target?.result as string) as unknown
           const err = validateCriteria(obj)
-          if (err) { window.alert(err); return }
+          if (err) { void showAlert(err); return }
           if (Array.isArray(obj)) {
             obj.forEach((item: Record<string, unknown>) => {
               const name = String(item.name ?? 'Imported')
@@ -314,9 +322,9 @@ export function SavedSearches() {
             })
           }
           refreshList()
-          window.alert('Import successful!')
+          void showAlert('Import successful!')
         } catch (ex) {
-          window.alert('Invalid JSON file: ' + (ex instanceof Error ? ex.message : String(ex)))
+          void showAlert('Invalid JSON file: ' + (ex instanceof Error ? ex.message : String(ex)))
         }
       }
       reader.readAsText(file)
@@ -360,7 +368,7 @@ export function SavedSearches() {
         })
       } else if (isSingleSearch(obj)) {
         const name = importName.trim()
-        if (!name) { window.alert('Please enter a name for this search.'); return }
+        if (!name) { void showAlert('Please enter a name for this search.'); return }
         useCriteriaStore.getState().savedSearches[name] = stripName(obj as Record<string, unknown>) as unknown as SavedSearch
       } else {
         const o = obj as Record<string, unknown>
@@ -371,7 +379,7 @@ export function SavedSearches() {
       refreshList()
       setShowImportModal(false)
     } catch (ex) {
-      window.alert('Error: ' + (ex instanceof Error ? ex.message : String(ex)))
+      void showAlert('Error: ' + (ex instanceof Error ? ex.message : String(ex)))
     }
   }, [importJSON, importName, refreshList])
 

@@ -12,6 +12,7 @@ import {
 import numeral from 'numeral'
 import { Button, ButtonGroup } from '../ui'
 import { useLoanStore } from '../stores'
+import { showConfirm } from '../lib/dialog'
 import type { BasketEntry } from '../stores'
 import BasketListItem from './BasketListItem'
 import Loan from './Loan'
@@ -209,8 +210,13 @@ export default function Basket() {
     )
   }, [basketEntries])
 
-  const handleClear = () => {
-    if (window.confirm('Are you sure you want to empty your basket?')) {
+  const handleClear = async () => {
+    const ok = await showConfirm('Are you sure you want to empty your basket?', {
+      title: 'Empty Basket',
+      confirmLabel: 'Empty Basket',
+      danger: true,
+    })
+    if (ok) {
       clearBasket()
       setSelectedId(null)
     }

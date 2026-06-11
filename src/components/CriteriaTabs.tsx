@@ -7,6 +7,7 @@ import Slider from 'rc-slider'
 import numeral from 'numeral'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
 import { useCriteriaStore, useLoanStore } from '../stores'
+import { showAlert } from '../lib/dialog'
 import type { Criteria, BalancerConfig, KivaLoan, Partner } from '../types'
 import type { BalancerResult } from '../stores/criteriaStore'
 import { getKivaLoans } from '../api/kiva'
@@ -1428,7 +1429,7 @@ export function CriteriaTabs() {
                   lsj.setMerge('Options', { hide_criteria_graphs: true })
                   setHelperTarget(null)
                   setHelperChart(null)
-                  window.alert('Distribution graphs disabled. You can re-enable them in Options > Display.')
+                  void showAlert('Distribution graphs disabled. You can re-enable them in Options > Display.')
                 }}
               >
                 Do not show again

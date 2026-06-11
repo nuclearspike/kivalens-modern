@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Button, Dropdown } from '../ui'
 import { useCriteriaStore, useLoanStore } from '../stores'
+import { showPrompt, showConfirm } from '../lib/dialog'
 import { getKivaLoans } from '../api/kiva'
 import { CriteriaTabs } from './CriteriaTabs'
 
@@ -50,8 +51,10 @@ export function Criteria() {
     [loadSearch, refreshNames],
   )
 
-  const handleSaveAs = useCallback(() => {
-    const name = window.prompt('Enter name for saved search criteria:')
+  const handleSaveAs = useCallback(async () => {
+    const name = await showPrompt('Enter name for saved search criteria:', {
+      title: 'Save Search',
+    })
     if (name?.trim()) {
       saveSearch(name.trim())
       refreshNames()
@@ -59,8 +62,13 @@ export function Criteria() {
   }, [saveSearch, refreshNames])
 
   const handleDelete = useCallback(
-    (name: string) => {
-      if (window.confirm(`Delete saved search "${name}"?`)) {
+    async (name: string) => {
+      const ok = await showConfirm(`Delete saved search "${name}"?`, {
+        title: 'Delete Saved Search',
+        confirmLabel: 'Delete',
+        danger: true,
+      })
+      if (ok) {
         deleteSearch(name)
         refreshNames()
       }
