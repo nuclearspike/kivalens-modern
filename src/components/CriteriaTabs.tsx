@@ -509,6 +509,7 @@ function SelectRow({
   helpText,
   canAll,
   onInspect,
+  onInspectEnd,
 }: {
   label: string
   options: SelectOption[]
@@ -519,8 +520,15 @@ function SelectRow({
   onAanChange?: (val: string) => void
   helpText?: string
   canAll?: boolean
-  onInspect?: () => void
+  /** focus/menu-open: reports the facet's viewport top for the floating graph */
+  onInspect?: (top?: number) => void
+  /** blur: lets the parent dismiss the floating graph (with a grace delay) */
+  onInspectEnd?: () => void
 }) {
+  // react-select refocuses its input right after its menu closes; that
+  // spurious focus must not (re-)arm this row's distribution graph.
+  const selfSuppressUntil = useRef(0)
+
   const selectedOptions = useMemo(() => {
     if (!isMulti) {
       return options.find((o) => o.value === String(value ?? '')) ?? null
@@ -565,8 +573,15 @@ function SelectRow({
               options={options}
               value={selectedOptions}
               onChange={handleChange as (newVal: MultiValue<SelectOption> | SingleValue<SelectOption>) => void}
-              onFocus={onInspect}
-              onMenuOpen={onInspect}
+              onFocus={(e) => {
+                if (Date.now() < selfSuppressUntil.current) return
+                onInspect?.((e.target as HTMLElement)?.getBoundingClientRect?.().top)
+              }}
+              onMenuOpen={() => onInspect?.()}
+              onMenuClose={() => {
+                selfSuppressUntil.current = Date.now() + 300
+              }}
+              onBlur={onInspectEnd}
               placeholder=""
               isClearable={isMulti}
               menuPortalTarget={document.body}
@@ -861,10 +876,12 @@ function LoanCriteriaPanel({
   criteria,
   onUpdate,
   onInspectSelect,
+  onInspectEnd,
 }: {
   criteria: Criteria
   onUpdate: (group: 'loan' | 'partner' | 'portfolio', key: string, value: unknown) => void
-  onInspectSelect: (group: 'loan' | 'partner', key: string, canAll?: boolean) => void
+  onInspectSelect: (group: 'loan' | 'partner', key: string, canAll?: boolean, top?: number) => void
+  onInspectEnd: () => void
 }) {
   const loan = criteria.loan as Record<string, unknown>
 
@@ -908,7 +925,8 @@ function LoanCriteriaPanel({
           onAanChange={sel.hasAan ? (val) => onUpdate('loan', `${sel.key}_all_any_none`, val) : undefined}
           helpText={sel.helpText}
           canAll={sel.canAll}
-          onInspect={sel.showDistribution ? () => onInspectSelect('loan', sel.key, sel.canAll) : undefined}
+          onInspect={sel.showDistribution ? (top) => onInspectSelect('loan', sel.key, sel.canAll, top) : undefined}
+          onInspectEnd={onInspectEnd}
         />
       ))}
 
@@ -941,10 +959,12 @@ function PartnerCriteriaPanel({
   criteria,
   onUpdate,
   onInspectSelect,
+  onInspectEnd,
 }: {
   criteria: Criteria
   onUpdate: (group: 'loan' | 'partner' | 'portfolio', key: string, value: unknown) => void
-  onInspectSelect: (group: 'loan' | 'partner', key: string, canAll?: boolean) => void
+  onInspectSelect: (group: 'loan' | 'partner', key: string, canAll?: boolean, top?: number) => void
+  onInspectEnd: () => void
 }) {
   const partner = criteria.partner as Record<string, unknown>
 
@@ -973,7 +993,8 @@ function PartnerCriteriaPanel({
           onAanChange={sel.hasAan ? (val) => onUpdate('partner', `${sel.key}_all_any_none`, val) : undefined}
           helpText={sel.helpText}
           canAll={sel.canAll}
-          onInspect={sel.showDistribution ? () => onInspectSelect('partner', sel.key, sel.canAll) : undefined}
+          onInspect={sel.showDistribution ? (top) => onInspectSelect('partner', sel.key, sel.canAll, top) : undefined}
+          onInspectEnd={onInspectEnd}
         />
       ))}
 
@@ -1156,6 +1177,11 @@ export function CriteriaTabs() {
   const [activeTab, setActiveTab] = useState<string>('borrower')
   const [helperTarget, setHelperTarget] = useState<HelperChartTarget | null>(null)
   const [helperChart, setHelperChart] = useState<HelperChart | null>(null)
+  const [graphTop, setGraphTop] = useState(100)
+  const removeGraphTimer = useRef(0)
+  // react-select refocuses its input after closing the menu on an outside
+  // click; suppress that follow-up onFocus so it can't re-arm the graph.
+  const suppressInspectUntil = useRef(0)
   const hideGraphs = !!lsj.get<{ hide_criteria_graphs?: boolean }>('Options').hide_criteria_graphs
 
   // Sync from store when criteria is reloaded externally (saved search load, reset)
@@ -1194,12 +1220,44 @@ export function CriteriaTabs() {
   )
 
   const handleInspectSelect = useCallback(
-    (group: 'loan' | 'partner', key: string, canAll = false) => {
+    (group: 'loan' | 'partner', key: string, canAll = false, top?: number) => {
       if (hideGraphs) return
+      if (Date.now() < suppressInspectUntil.current) return
+      window.clearTimeout(removeGraphTimer.current)
+      if (top != null) setGraphTop(Math.max(60, top))
       setHelperTarget({ group, key, canAll })
     },
     [hideGraphs],
   )
+
+  // Delay removal on blur so clicks inside the popover land first
+  const handleInspectEnd = useCallback(() => {
+    window.clearTimeout(removeGraphTimer.current)
+    removeGraphTimer.current = window.setTimeout(() => {
+      setHelperTarget(null)
+      setHelperChart(null)
+    }, 200)
+  }, [])
+
+  useEffect(() => () => window.clearTimeout(removeGraphTimer.current), [])
+
+  // Blur alone is unreliable (react-select refocuses internally on menu
+  // close), so also dismiss on any mousedown outside the popover/selects.
+  useEffect(() => {
+    if (!helperChart) return
+    const onDocMouseDown = (e: MouseEvent) => {
+      const target = e.target as Element | null
+      if (!target?.closest) return
+      if (target.closest('.kl-helper-popover')) return
+      if (target.closest('[class*="Select__"]')) return
+      suppressInspectUntil.current = Date.now() + 400
+      window.clearTimeout(removeGraphTimer.current)
+      setHelperTarget(null)
+      setHelperChart(null)
+    }
+    document.addEventListener('mousedown', onDocMouseDown)
+    return () => document.removeEventListener('mousedown', onDocMouseDown)
+  }, [helperChart, handleInspectEnd])
 
   useEffect(() => {
     if (!helperTarget || hideGraphs) {
@@ -1254,6 +1312,7 @@ export function CriteriaTabs() {
               criteria={criteria}
               onUpdate={handleUpdate}
               onInspectSelect={handleInspectSelect}
+              onInspectEnd={handleInspectEnd}
             />
           </div>
         </Tab>
@@ -1264,6 +1323,7 @@ export function CriteriaTabs() {
               criteria={criteria}
               onUpdate={handleUpdate}
               onInspectSelect={handleInspectSelect}
+              onInspectEnd={handleInspectEnd}
             />
           </div>
         </Tab>
@@ -1282,21 +1342,55 @@ export function CriteriaTabs() {
       </Tabs>
 
       {!hideGraphs && helperChart ? (
-        <Card className="mt-3 d-none d-lg-block">
-          <Card.Header className="d-flex justify-content-between align-items-center">
-            <span>{helperChart.title}</span>
-            <button
-              type="button"
-              className="btn btn-link btn-sm p-0 text-decoration-none"
-              onClick={() => {
-                setHelperTarget(null)
-                setHelperChart(null)
-              }}
-            >
-              Hide
-            </button>
-          </Card.Header>
-          <Card.Body className="p-2">
+        // Floating distribution graph beside the focused facet, to the right
+        // of the criteria column (original app behavior)
+        <div
+          className="kl-helper-popover d-none d-lg-block"
+          style={{
+            position: 'fixed',
+            top: graphTop,
+            left: 'calc(33.33% + 15px)',
+            zIndex: 1050,
+            background: '#fff',
+            border: '1px solid #ccc',
+            borderRadius: 8,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            padding: '8px 12px',
+            width: 320,
+            maxHeight: '70vh',
+            overflowY: 'auto',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <span style={{ fontSize: 12, fontWeight: 600 }}>{helperChart.title}</span>
+            <span>
+              <span
+                style={{ fontSize: 11, color: '#999', cursor: 'pointer', textDecoration: 'underline' }}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  lsj.setMerge('Options', { hide_criteria_graphs: true })
+                  setHelperTarget(null)
+                  setHelperChart(null)
+                  window.alert('Distribution graphs disabled. You can re-enable them in Options > Display.')
+                }}
+              >
+                Do not show again
+              </span>
+              <span
+                style={{ fontSize: 11, color: '#999', cursor: 'pointer', textDecoration: 'underline', marginLeft: 8 }}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setHelperTarget(null)
+                  setHelperChart(null)
+                }}
+              >
+                Close
+              </span>
+            </span>
+          </div>
+          <div>
             <ResponsiveContainer width="100%" height={helperChartHeight}>
               <BarChart
                 data={helperChart.data}
@@ -1314,11 +1408,11 @@ export function CriteriaTabs() {
                   }
                 />
                 <Tooltip formatter={(value) => [Number(value), 'Matching Loans']} />
-                <Bar dataKey="count" fill="#2C8C5E" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="count" fill="#2C8C5E" radius={[0, 4, 4, 0]} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
-          </Card.Body>
-        </Card>
+          </div>
+        </div>
       ) : null}
     </div>
   )
