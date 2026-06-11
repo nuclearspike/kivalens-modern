@@ -287,6 +287,31 @@ interface BalancerMeta {
   key?: string
 }
 
+// Options list per criteria key — used to map a clicked distribution bar's
+// display name back to the stored option value.
+const OPTIONS_BY_KEY: Record<string, SelectOption[]> = {
+  country_code: COUNTRY_OPTIONS,
+  sector: SECTOR_OPTIONS,
+  activity: ACTIVITY_OPTIONS,
+  themes: THEME_OPTIONS,
+  tags: TAG_OPTIONS,
+  repayment_interval: REPAYMENT_INTERVAL_OPTIONS,
+  currency_exchange_loss_liability: CURRENCY_LOSS_OPTIONS,
+  bonus_credit_eligibility: BONUS_CREDIT_OPTIONS,
+  direct: DIRECT_OPTIONS,
+  region: REGION_OPTIONS,
+  social_performance: SOCIAL_PERFORMANCE_OPTIONS,
+  charges_fees_and_interest: CHARGES_INTEREST_OPTIONS,
+  religion: RELIGION_OPTIONS,
+}
+
+/** Facets whose criteria value is a single selection rather than a CSV. */
+const SINGLE_VALUE_KEYS = new Set([
+  'bonus_credit_eligibility',
+  'direct',
+  'charges_fees_and_interest',
+])
+
 const BALANCER_OPTIONS: Record<string, BalancerMeta> = {
   pb_partner: { label: 'Partners', sliceBy: 'partner', key: 'id' },
   pb_country: { label: 'Countries', sliceBy: 'country' },
@@ -1239,6 +1264,37 @@ export function CriteriaTabs() {
     }, 200)
   }, [])
 
+  // Clicking a distribution bar selects that value in the facet's control.
+  const handleBarClick = useCallback(
+    (name: string) => {
+      if (!helperTarget || !name) return
+      const { group, key } = helperTarget
+      const options = OPTIONS_BY_KEY[key]
+      if (!options) return
+      const match = options.find(
+        (o) =>
+          o.label === name ||
+          String(o.value) === name ||
+          humanize(String(o.value)) === name,
+      )
+      if (!match) return
+
+      if (SINGLE_VALUE_KEYS.has(key)) {
+        handleUpdate(group, key, String(match.value))
+        return
+      }
+      const current = String(
+        (criteria[group] as Record<string, unknown>)[key] ?? '',
+      )
+      const values = current ? current.split(',').filter(Boolean) : []
+      if (!values.includes(String(match.value))) {
+        values.push(String(match.value))
+        handleUpdate(group, key, values.join(','))
+      }
+    },
+    [helperTarget, criteria, handleUpdate],
+  )
+
   useEffect(() => () => window.clearTimeout(removeGraphTimer.current), [])
 
   // Blur alone is unreliable (react-select refocuses internally on menu
@@ -1408,7 +1464,16 @@ export function CriteriaTabs() {
                   }
                 />
                 <Tooltip formatter={(value) => [Number(value), 'Matching Loans']} />
-                <Bar dataKey="count" fill="#2C8C5E" radius={[0, 4, 4, 0]} isAnimationActive={false} />
+                <Bar
+                  dataKey="count"
+                  fill="#2C8C5E"
+                  radius={[0, 4, 4, 0]}
+                  isAnimationActive={false}
+                  cursor="pointer"
+                  onClick={(entry: { payload?: { name?: string } }) =>
+                    handleBarClick(String(entry?.payload?.name ?? ''))
+                  }
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
