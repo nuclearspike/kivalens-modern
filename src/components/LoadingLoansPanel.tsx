@@ -10,6 +10,7 @@ import DidYouKnow from './DidYouKnow'
 export default function LoadingLoansPanel() {
   const downloading = useLoanStore((s) => s.downloading)
   const progress = useLoanStore((s) => s.downloadProgress)
+  const haveLoans = useLoanStore((s) => s.loans.length > 0)
 
   const state = useMemo(() => {
     const idsProgress = progress?.task === 'ids' && progress.done != null && progress.total
@@ -30,7 +31,9 @@ export default function LoadingLoansPanel() {
     }
   }, [downloading, progress])
 
-  if (!state.show) return null
+  // Either the loading panel or the loan list — never both. Once any
+  // loans are in, the list takes over and this panel stays hidden.
+  if (!state.show || haveLoans) return null
 
   // Mirrors the old app's Panel-with-Modal.Header/Body/Footer structure
   // (white header with large title, tip text under the progress bar).
