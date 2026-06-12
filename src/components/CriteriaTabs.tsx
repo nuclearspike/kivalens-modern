@@ -93,44 +93,48 @@ const COUNTRY_OPTIONS: SelectOption[] = [
 ]
 
 const SECTOR_OPTIONS: SelectOption[] = [
-  'Agriculture', 'Arts', 'Clothing', 'Construction', 'Education', 'Entertainment',
-  'Food', 'Health', 'Housing', 'Manufacturing', 'Personal Use', 'Retail',
-  'Services', 'Transportation', 'Wholesale',
+  'Agriculture', 'Arts', 'Clean Energy', 'Clothing', 'Construction', 'Education',
+  'Entertainment', 'Food', 'Health', 'Housing', 'Manufacturing', 'Personal Use', 'Retail',
+  'Reuse & Recycle', 'Sanitation & Hygiene', 'Services', 'Transportation', 'Water',
+  'Wholesale',
 ].map((s) => ({ value: s, label: s }))
 
 // Kiva's full activity taxonomy (from the original app)
 const ACTIVITY_OPTIONS: SelectOption[] = [
-  'Agriculture', 'Air Conditioning', 'Animal Sales', 'Arts', 'Auto Repair', 'Bakery',
-  'Balut-Making', 'Barber Shop', 'Beauty Salon', 'Beverages', 'Bicycle Repair', 'Bicycle Sales',
-  'Blacksmith', 'Bookbinding', 'Bookstore', 'Bricks', 'Butcher Shop', 'Cafe', 'Call Center',
-  'Carpentry', 'Catering', 'Cattle', 'Cement', 'Cereals', 'Charcoal Sales', 'Cheese Making',
-  'Child Care', 'Cleaning Services', 'Cloth & Dressmaking Supplies', 'Clothing',
-  'Clothing Sales', 'Cobbler', 'Communications', 'Computers', 'Construction',
-  'Construction Supplies', 'Consumer Goods', 'Cosmetics Sales', 'Crafts', 'Dairy',
-  'Day Care/Adult Care', 'Decorations Sales', 'Dental', 'Education provider', 'Electrical Goods',
-  'Electrician', 'Electronics Repair', 'Electronics Sales', 'Embroidery', 'Energy',
-  'Entertainment', 'Farm Supplies', 'Farming', 'Film', 'Fish Selling', 'Fishing', 'Florist',
-  'Flowers', 'Food', 'Food Market', 'Food Production/Sales', 'Food Stall', 'Fruits & Vegetables',
-  'Fuel/Firewood', 'Funeral Expenses', 'Furniture Making', 'Games', 'General Store',
-  'Goods Distribution', 'Grocery Store', 'Hardware', 'Health', 'Higher education costs',
-  'Home Appliances', 'Home Energy', 'Home Products Sales', 'Hotel', 'Internet Cafe', 'Jewelry',
-  'Knitting', 'Land Rental', 'Landscaping/Gardening', 'Laundry', 'Liquor Store / Off-License',
-  'Livestock', 'Machine Shop', 'Machinery Rental', 'Manufacturing', 'Medical Clinic',
-  'Metal Shop', 'Milk Sales', 'Mobile Phones', 'Motorcycle Repair', 'Motorcycle Transport',
-  'Movie Tapes & DVDs', 'Music Discs & Tapes', 'Musical Instruments', 'Musical Performance',
-  'Natural Medicines', 'Office Supplies', 'Other', 'Paper Sales', 'Party Supplies', 'Patchwork',
-  'Perfumes', 'Personal Housing Expenses', 'Personal Medical Expenses',
+  'Agriculture', 'Air Conditioning', 'Animal Sales', 'Aquaculture', 'Arts', 'Auto Repair',
+  'Bakery', 'Balut-Making', 'Barber Shop', 'Beauty Salon', 'Beverages', 'Bicycle Repair',
+  'Bicycle Sales', 'Blacksmith', 'Bookbinding', 'Bookstore', 'Bricks', 'Butcher Shop', 'Cafe',
+  'Call Center', 'Carpentry', 'Catering', 'Cattle', 'Cement', 'Cereals', 'Charcoal Sales',
+  'Cheese Making', 'Child Care', 'Cleaning Services', 'Cloth & Dressmaking Supplies',
+  'Clothing', 'Clothing Sales', 'Cobbler', 'Communications', 'Community Water Distribution',
+  'Computer', 'Computers', 'Construction', 'Construction Supplies', 'Consumer Goods',
+  'Cosmetics Sales', 'Crafts', 'Dairy', 'Day Care/Adult Care', 'Decorations Sales', 'Dental',
+  'Education provider', 'Electrical Goods', 'Electrician', 'Electronics Repair',
+  'Electronics Sales', 'Embroidery', 'Energy', 'Entertainment', 'Event Planning',
+  'Farm Supplies', 'Farming', 'Film', 'Fish Selling', 'Fishing', 'Florist', 'Flowers', 'Food',
+  'Food Market', 'Food Production/Sales', 'Food Stall', 'Fruits & Vegetables', 'Fuel/Firewood',
+  'Funeral Expenses', 'Furniture Making', 'Games', 'General Store', 'Goods Distribution',
+  'Grocery Store', 'Hardware', 'Health', 'Higher education costs', 'Home Appliances',
+  'Home Energy', 'Home Products Sales', 'Hotel', 'Internet Cafe', 'Jewelry', 'Knitting',
+  'Land Rental', 'Landscaping / Gardening', 'Landscaping/Gardening', 'Laundry',
+  'Liquor Store / Off-License', 'Livestock', 'Machine Shop', 'Machinery Rental',
+  'Manufacturing', 'Medical Clinic', 'Metal Shop', 'Milk Sales', 'Mobile Phones',
+  'Mobile Transactions', 'Motorcycle Repair', 'Motorcycle Transport', 'Movie Tapes & DVDs',
+  'Music Discs & Tapes', 'Musical Instruments', 'Musical Performance', 'Natural Medicines',
+  'Office Supplies', 'Other', 'Paper Sales', 'Party Supplies', 'Patchwork', 'Perfumes',
+  'Personal Expenses', 'Personal Housing Expenses', 'Personal Medical Expenses',
   'Personal Products Sales', 'Personal Purchases', 'Pharmacy', 'Phone Accessories',
   'Phone Repair', 'Phone Use Sales', 'Photography', 'Pigs', 'Plastics Sales', 'Poultry',
   'Primary/secondary school costs', 'Printing', 'Property', 'Pub', 'Quarrying',
   'Recycled Materials', 'Recycling', 'Religious Articles', 'Renewable Energy Products',
-  'Renewable Energy Products', 'Repair/Mechanic', 'Restaurant', 'Restaurant/Caterer', 'Retail',
-  'Rickshaw', 'Secretarial Services', 'Services', 'Sewing', 'Shoe Sales', 'Social Enterprise',
-  'Soft Drinks', 'Souvenir Sales', 'Spare Parts', 'Sporting Good Sales', 'Tailoring', 'Taxi',
-  'Textiles', 'Timber Sales', 'Tourism', 'Transportation', 'Traveling Sales', 'Upholstery',
-  'Used Clothing', 'Used Shoes', 'Utilities', 'Vehicle', 'Vehicle Repairs', 'Veterinary Sales',
-  'Waste Management', 'Water Distribution', 'Weaving', 'Wedding Expenses', 'Well digging',
-  'Wholesale',
+  'Repair/Mechanic', 'Restaurant', 'Restaurant/Caterer', 'Retail', 'Rickshaw',
+  'Secretarial Services', 'Services', 'Sewing', 'Shoe Sales', 'Social Enterprise',
+  'Soft Drinks', 'Solar Home Systems', 'Souvenir Sales', 'Spare Parts', 'Sporting Good Sales',
+  'Tailoring', 'Taxi', 'Textiles', 'Timber Sales', 'Toilets & Sanitation Systems', 'Tourism',
+  'Transportation', 'Traveling Sales', 'Upholstery', 'Used Clothing', 'Used Shoes',
+  'Utilities', 'Vehicle', 'Vehicle Repairs', 'Veterinary Sales', 'Waste Management',
+  'Water Distribution', 'Water Pumps & Irrigation', 'Weaving', 'Wedding Expenses',
+  'Well digging', 'Wholesale',
 ].map((s) => ({ value: s, label: s }))
 
 const TAG_OPTIONS: SelectOption[] = [
@@ -161,13 +165,31 @@ const TAG_OPTIONS: SelectOption[] = [
   { value: '#Vegan', label: '#Vegan' },
   { value: '#Widowed', label: '#Widowed' },
   { value: '#WomanOwnedBiz', label: '#WomanOwnedBiz' },
+  { value: '#BIPOC-ownedBusiness', label: '#BIPOC-ownedBusiness' },
+  { value: '#COVID-19', label: '#COVID-19' },
+  { value: '#CommunityImpact', label: '#CommunityImpact' },
+  { value: '#InspiringStory', label: '#InspiringStory' },
+  { value: '#Latinx/Hispanic-OwnedBusiness', label: '#Latinx/Hispanic-OwnedBusiness' },
+  { value: '#NewBusiness', label: '#NewBusiness' },
+  { value: '#PowerfulStory', label: '#PowerfulStory' },
+  { value: '#StandoutBackstory', label: '#StandoutBackstory' },
+  { value: '#TangibleProducts', label: '#TangibleProducts' },
+  { value: '#USBlack-OwnedBusiness', label: '#USBlack-OwnedBusiness' },
+  { value: '#USEtsy', label: '#USEtsy' },
+  { value: '#USPGE', label: '#USPGE' },
+  { value: '#USimmigrant', label: '#USimmigrant' },
+  { value: '#Unique', label: '#Unique' },
+  { value: '#Woman-OwnedBusiness', label: '#Woman-OwnedBusiness' },
+  { value: 'BNY', label: 'BNY' },
+  { value: 'USRefugee', label: 'USRefugee' },
 ]
 
 const THEME_OPTIONS: SelectOption[] = [
-  'Arab Youth', 'Conflict Zones', 'Disaster recovery', 'Fair Trade', 'Green',
-  'Growing Businesses', 'Health', 'Higher Education', 'Innovative Loans',
-  'Islamic Finance', 'Job Creation', 'Mobile Technology', 'Rural Exclusion',
-  'SME', 'Start-Up', 'Underfunded Areas', 'Vulnerable Groups',
+  'Arab Youth', 'Clean Energy', 'Conflict Zones', 'Crop Insurance', 'Disaster recovery',
+  'Earth Day Campaign', 'Fair Trade', 'Green', 'Growing Businesses', 'Health',
+  'Higher Education', 'Innovative Loans', 'International COVID-19 support', 'Islamic Finance',
+  'Job Creation', 'Mobile Technology', 'Refugees/Displaced', 'Rural Exclusion', 'SME',
+  'Social Enterprise', 'Solar', 'Start-Up', 'Underfunded Areas', 'Vulnerable Groups',
   'Water and Sanitation', 'Youth',
 ].map((t) => ({ value: t, label: t }))
 
@@ -895,6 +917,58 @@ function BalancingRow({
 }
 
 // ---------------------------------------------------------------------------
+// Runtime option discovery — the hard-coded *_OPTIONS above are the baseline
+// (so a value is selectable even when zero loans currently have it). Once the
+// client has loans loaded, any distinct value present in the data that isn't
+// already in the baseline is appended, keeping dropdowns in sync with reality.
+// ---------------------------------------------------------------------------
+
+/** Append distinct `values` not already present in `base` (curated order kept;
+ *  newcomers sorted among themselves, added at the end). */
+function withDiscovered(
+  base: SelectOption[],
+  values: Iterable<string | null | undefined>,
+): SelectOption[] {
+  const seen = new Set(base.map((o) => o.value))
+  const extra: SelectOption[] = []
+  for (const v of values) {
+    if (v && !seen.has(v)) {
+      seen.add(v)
+      extra.push({ value: v, label: v })
+    }
+  }
+  if (!extra.length) return base
+  extra.sort((a, b) => a.label.localeCompare(b.label))
+  return [...base, ...extra]
+}
+
+function useDiscoveredOptions() {
+  // Recompute whenever the loaded loan total changes (i.e. as loads finish).
+  const loanCount = useLoanStore((s) => s.loanCount)
+  return useMemo(() => {
+    const loans = getKivaLoans()?.loansFromKiva ?? []
+    const sectors = new Set<string>()
+    const activities = new Set<string>()
+    const themes = new Set<string>()
+    const tags = new Set<string>()
+    for (const l of loans) {
+      if (l.sector) sectors.add(l.sector)
+      if (l.activity) activities.add(l.activity)
+      for (const t of l.themes ?? []) if (t) themes.add(t)
+      for (const t of l.kls_tags ?? []) if (t) tags.add(t)
+    }
+    return {
+      sector: withDiscovered(SECTOR_OPTIONS, sectors),
+      activity: withDiscovered(ACTIVITY_OPTIONS, activities),
+      themes: withDiscovered(THEME_OPTIONS, themes),
+      tags: withDiscovered(TAG_OPTIONS, tags),
+    }
+    // loanCount is the intended trigger; loans are read imperatively.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loanCount])
+}
+
+// ---------------------------------------------------------------------------
 // Sub-component: LoanCriteriaPanel
 // ---------------------------------------------------------------------------
 
@@ -910,16 +984,17 @@ function LoanCriteriaPanel({
   onInspectEnd: () => void
 }) {
   const loan = criteria.loan as Record<string, unknown>
+  const discovered = useDiscoveredOptions()
 
   const loanSelects: Array<{
     key: string; label: string; options: SelectOption[]; isMulti: boolean
     hasAan?: boolean; canAll?: boolean; helpText?: string; showDistribution?: boolean
   }> = [
     { key: 'country_code', label: 'Countries', options: COUNTRY_OPTIONS, isMulti: true, hasAan: true, showDistribution: true },
-    { key: 'sector', label: 'Sectors', options: SECTOR_OPTIONS, isMulti: true, hasAan: true, showDistribution: true },
-    { key: 'activity', label: 'Activities', options: ACTIVITY_OPTIONS, isMulti: true, hasAan: true, showDistribution: true },
-    { key: 'themes', label: 'Themes', options: THEME_OPTIONS, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
-    { key: 'tags', label: 'Tags', options: TAG_OPTIONS, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
+    { key: 'sector', label: 'Sectors', options: discovered.sector, isMulti: true, hasAan: true, showDistribution: true },
+    { key: 'activity', label: 'Activities', options: discovered.activity, isMulti: true, hasAan: true, showDistribution: true },
+    { key: 'themes', label: 'Themes', options: discovered.themes, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
+    { key: 'tags', label: 'Tags', options: discovered.tags, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
     { key: 'repayment_interval', label: 'Repayment Interval', options: REPAYMENT_INTERVAL_OPTIONS, isMulti: true, showDistribution: true },
     { key: 'currency_exchange_loss_liability', label: 'Currency Loss', options: CURRENCY_LOSS_OPTIONS, isMulti: true, showDistribution: true },
     { key: 'bonus_credit_eligibility', label: 'Bonus Credit', options: BONUS_CREDIT_OPTIONS, isMulti: false, showDistribution: true },
