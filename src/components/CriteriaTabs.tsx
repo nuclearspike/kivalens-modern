@@ -917,34 +917,30 @@ function BalancingRow({
 }
 
 // ---------------------------------------------------------------------------
-// Runtime option discovery — the hard-coded *_OPTIONS above are the baseline
-// (so a value is selectable even when zero loans currently have it). Once the
-// client has loans loaded, any distinct value present in the data that isn't
-// already in the baseline is appended, keeping dropdowns in sync with reality.
+// Option discovery — each facet's dropdown is the union of three sources:
+//   1. the server's authoritative taxonomy from Kiva's GraphQL (allOptions),
+//   2. the hard-coded *_OPTIONS baseline (offline fallback / belt-and-braces),
+//   3. distinct values actually present in the loaded loans.
+// This guarantees the most complete list (incl. values with zero current
+// loans) and never drops a value the loans use. Sorted by label.
 // ---------------------------------------------------------------------------
 
-/** Append distinct `values` not already present in `base` (curated order kept;
- *  newcomers sorted among themselves, added at the end). */
-function withDiscovered(
-  base: SelectOption[],
-  values: Iterable<string | null | undefined>,
-): SelectOption[] {
-  const seen = new Set(base.map((o) => o.value))
-  const extra: SelectOption[] = []
-  for (const v of values) {
-    if (v && !seen.has(v)) {
-      seen.add(v)
-      extra.push({ value: v, label: v })
+/** Union the option lists by value (earlier lists win on collision, so the
+ *  server's nicer labels take precedence), then sort by label. */
+function mergeByValue(...lists: SelectOption[][]): SelectOption[] {
+  const byValue = new Map<string, SelectOption>()
+  for (const list of lists) {
+    for (const o of list) {
+      if (o.value && !byValue.has(o.value)) byValue.set(o.value, o)
     }
   }
-  if (!extra.length) return base
-  extra.sort((a, b) => a.label.localeCompare(b.label))
-  return [...base, ...extra]
+  return [...byValue.values()].sort((a, b) => a.label.localeCompare(b.label))
 }
 
 function useDiscoveredOptions() {
-  // Recompute whenever the loaded loan total changes (i.e. as loads finish).
+  // Recompute when the loaded loan total changes or server options arrive.
   const loanCount = useLoanStore((s) => s.loanCount)
+  const serverOptions = useCriteriaStore((s) => s.allOptions)
   return useMemo(() => {
     const loans = getKivaLoans()?.loansFromKiva ?? []
     const sectors = new Set<string>()
@@ -957,15 +953,17 @@ function useDiscoveredOptions() {
       for (const t of l.themes ?? []) if (t) themes.add(t)
       for (const t of l.kls_tags ?? []) if (t) tags.add(t)
     }
+    const discovered = (set: Set<string>): SelectOption[] =>
+      [...set].map((v) => ({ value: v, label: v }))
     return {
-      sector: withDiscovered(SECTOR_OPTIONS, sectors),
-      activity: withDiscovered(ACTIVITY_OPTIONS, activities),
-      themes: withDiscovered(THEME_OPTIONS, themes),
-      tags: withDiscovered(TAG_OPTIONS, tags),
+      sector: mergeByValue(serverOptions.sectors ?? [], SECTOR_OPTIONS, discovered(sectors)),
+      activity: mergeByValue(serverOptions.activities ?? [], ACTIVITY_OPTIONS, discovered(activities)),
+      themes: mergeByValue(serverOptions.themes ?? [], THEME_OPTIONS, discovered(themes)),
+      tags: mergeByValue(serverOptions.tags ?? [], TAG_OPTIONS, discovered(tags)),
     }
-    // loanCount is the intended trigger; loans are read imperatively.
+    // loanCount/serverOptions are the triggers; loans are read imperatively.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loanCount])
+  }, [loanCount, serverOptions])
 }
 
 // ---------------------------------------------------------------------------

@@ -7,6 +7,7 @@ export interface KLState {
   klStart: unknown
   batches: Map<number, unknown>
   partnersGz: Buffer | null
+  optionsGz: Buffer | null
   allLoans: unknown[]
   newestTime: number
   building: boolean

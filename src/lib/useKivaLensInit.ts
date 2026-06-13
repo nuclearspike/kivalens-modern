@@ -35,6 +35,18 @@ export function useKivaLensInit() {
       if (options.kiva_lender_id) {
         void useUtilsStore.getState().fetchLenderObj(options.kiva_lender_id, false)
       }
+
+      // Load the authoritative facet taxonomy (sectors/activities/themes/tags)
+      // the server pulls from Kiva's GraphQL — the dropdowns merge this with
+      // their hard-coded baseline so the lists are always complete.
+      void fetch('/api/options')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((opts) => {
+          if (opts) useCriteriaStore.getState().setAllOptions(opts)
+        })
+        .catch(() => {
+          /* non-fatal: dropdowns fall back to the baseline */
+        })
     } else {
       kl = getKivaLoans()
     }

@@ -84,6 +84,55 @@ async function fetchAllSearchLoans(log) {
   return all
 }
 
+const KIVA_GRAPHQL = 'https://api.kivaws.org/graphql'
+
+/**
+ * Fetch the authoritative facet taxonomy (sectors / activities / themes / tags)
+ * from Kiva's GraphQL API, normalized to the {value,label} shape the client's
+ * dropdowns use. This guarantees the most complete list even for values that
+ * have zero current fundraising loans. One round-trip.
+ *
+ * Tags: the client filters loans on `kls_tags`, which is the v1 tag name with
+ * whitespace stripped (e.g. "#Woman-OwnedBusiness"), so the option value must
+ * match that; the readable GraphQL name (e.g. "#Woman-Owned Business") is the
+ * label. Only active, non-empty tags are included.
+ */
+async function fetchTaxonomy() {
+  const query =
+    '{ lend { sector { name } activity { name } tag { name status } loanThemeFilter { name } } }'
+  const res = await fetch(KIVA_GRAPHQL, {
+    method: 'POST',
+    headers: { ...FETCH_HEADERS, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query }),
+  })
+  if (!res.ok) throw new Error(`GraphQL ${res.status} ${res.statusText}`)
+  const json = await res.json()
+  const lend = json?.data?.lend
+  if (!lend) throw new Error(`GraphQL taxonomy missing: ${JSON.stringify(json).slice(0, 200)}`)
+
+  const byLabel = (a, b) => a.label.localeCompare(b.label)
+  const named = (list) =>
+    (list || [])
+      .map((x) => x.name)
+      .filter((n) => n && n.trim())
+      .map((n) => ({ value: n, label: n }))
+      .sort(byLabel)
+
+  const tagSeen = new Set()
+  const tags = (lend.tag || [])
+    .filter((t) => t.status === 'active' && t.name && t.name.trim())
+    .map((t) => ({ value: t.name.replace(/\s+/g, ''), label: t.name }))
+    .filter((t) => (tagSeen.has(t.value) ? false : (tagSeen.add(t.value), true)))
+    .sort(byLabel)
+
+  return {
+    sectors: named(lend.sector),
+    activities: named(lend.activity),
+    themes: named(lend.loanThemeFilter),
+    tags,
+  }
+}
+
 async function fetchLoanDetails(ids, log) {
   const details = new Map()
   const batchSize = 50
@@ -363,6 +412,7 @@ export function createState() {
     klStart: null,
     batches: new Map(), // retained batches (latest RETAINED_BATCHES)
     partnersGz: null,
+    optionsGz: null, // gzipped facet taxonomy from Kiva GraphQL
     allLoans: [],
     newestTime: 0,
     building: false,
@@ -391,6 +441,19 @@ export async function prepareData(state, log = console.log) {
     const partners = processPartners(rawPartners)
     state.partnersGz = await gzipAsync(JSON.stringify(partners))
     log(`Partners ready: ${partners.length}`)
+
+    // Facet taxonomy (sectors/activities/themes/tags) from GraphQL — keep the
+    // previous list if this fails; it's non-essential to the loan dataset.
+    try {
+      const options = await fetchTaxonomy()
+      state.optionsGz = await gzipAsync(JSON.stringify(options))
+      log(
+        `Taxonomy ready: ${options.sectors.length} sectors, ${options.activities.length} activities, ` +
+          `${options.themes.length} themes, ${options.tags.length} tags`,
+      )
+    } catch (e) {
+      log(`Taxonomy fetch failed (keeping previous): ${e}`)
+    }
 
     log('Fetching loans from search...')
     const searchLoans = await fetchAllSearchLoans(log)
@@ -508,6 +571,12 @@ export function handleApi(state, req, res) {
   if (url === '/api/partners') {
     if (!state.partnersGz) send404(res)
     else sendGzip(res, state.partnersGz)
+    return true
+  }
+
+  if (url === '/api/options') {
+    if (!state.optionsGz) send404(res)
+    else sendGzip(res, state.optionsGz)
     return true
   }
 
