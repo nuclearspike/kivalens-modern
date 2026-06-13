@@ -4,7 +4,7 @@ A pixel-faithful clone of [KivaLens](https://www.kivalens.org) (the advanced
 loan-search tool for [Kiva.org](https://www.kiva.org) micro-lending) rebuilt on
 a modern stack with **zero Bootstrap**.
 
-The original app (`../kivalensjs-old`) is React 0.14 + Reflux + Bootstrap 3
+The original app (`../kivalensjs`) is React 0.14 + Reflux + Bootstrap 3
 (Bootswatch Flatly) + Browserify. This clone reproduces its rendered look and
 behavior using:
 
@@ -19,7 +19,7 @@ behavior using:
 | Charts           | Highcharts (vendor bundle)     | recharts                          |
 | Selects          | react-select v1                | react-select v5 (restyled to v1)  |
 | Sliders          | react-slider                   | rc-slider (restyled)              |
-| Server           | Express proxy on Heroku        | Vite dev plugin (`server/klDevPlugin.ts`) |
+| Server           | Express proxy server           | Node server (`server/prod.mjs`) + Vite dev plugin |
 
 ## No Bootstrap, same pixels
 
@@ -51,9 +51,9 @@ npm run build    # tsc + vite build
 npm run lint
 ```
 
-## Production / deployment
+## Production
 
-The same API the dev plugin provides is served in production by a tiny
+The same API the dev plugin provides is served in production by a tiny,
 dependency-free Node server, so dev and prod share one implementation:
 
 | File | Role |
@@ -67,30 +67,10 @@ npm run build       # produces dist/
 npm start           # node server/prod.mjs — serves dist/ + the API on $PORT
 ```
 
-### Heroku
-
-It's deploy-ready: `Procfile` (`web: node server/prod.mjs`), `engines.node`,
-and the `build` script Heroku runs automatically. The production server has
-**zero runtime dependencies** (only Node builtins), so it works after Heroku
-prunes devDependencies.
-
-```bash
-heroku create
-git push heroku main
-```
-
-The server forces HTTPS behind Heroku's router (`x-forwarded-proto`), gzips the
-loan batches, refreshes the dataset every 10 minutes, and proxies Kiva's
-`getGraphData` / the A+ Google-Sheet through `/proxy/*` with the header recipe
-Kiva's WAF requires (no browser `User-Agent`).
-
-## Pixel-comparison workflow
-
-The original app can be run side by side for comparison:
-
-```bash
-cd ../kivalensjs-old && PORT=5055 node cluster.js
-```
-
-Both apps follow the same routes (`#/search`, `#/basket`, `#/partners`,
-`#/saved`, `#/options`, `#/about`, `#/teams`, `#/live`, `#/portfolio`, …).
+The server upgrades HTTP→HTTPS behind a TLS-terminating proxy
+(`x-forwarded-proto`), sends an A+ set of security headers (CSP, HSTS,
+nosniff, frame-deny, referrer + permissions policies), gzips the loan batches,
+refreshes the dataset every 10 minutes, and proxies Kiva's `getGraphData` and
+the A+ Google-Sheet through `/proxy/*` with the header recipe Kiva's WAF
+requires (no browser `User-Agent`). It has **zero runtime dependencies** (Node
+builtins only).
