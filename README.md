@@ -51,6 +51,39 @@ npm run build    # tsc + vite build
 npm run lint
 ```
 
+## Production / deployment
+
+The same API the dev plugin provides is served in production by a tiny
+dependency-free Node server, so dev and prod share one implementation:
+
+| File | Role |
+| ---- | ---- |
+| `server/klCore.mjs` | All the logic — Kiva download, KLS batch packaging, periodic refresh, and the `/api/*`, `/graphql`, `/proxy/*` request handlers. Node builtins only. |
+| `server/klDevPlugin.ts` | Thin Vite plugin that mounts `klCore` into `vite dev`. |
+| `server/prod.mjs` | Production HTTP server: serves the built `dist/` SPA + mounts `klCore`. Listens on `$PORT`. |
+
+```bash
+npm run build       # produces dist/
+npm start           # node server/prod.mjs — serves dist/ + the API on $PORT
+```
+
+### Heroku
+
+It's deploy-ready: `Procfile` (`web: node server/prod.mjs`), `engines.node`,
+and the `build` script Heroku runs automatically. The production server has
+**zero runtime dependencies** (only Node builtins), so it works after Heroku
+prunes devDependencies.
+
+```bash
+heroku create
+git push heroku main
+```
+
+The server forces HTTPS behind Heroku's router (`x-forwarded-proto`), gzips the
+loan batches, refreshes the dataset every 10 minutes, and proxies Kiva's
+`getGraphData` / the A+ Google-Sheet through `/proxy/*` with the header recipe
+Kiva's WAF requires (no browser `User-Agent`).
+
 ## Pixel-comparison workflow
 
 The original app can be run side by side for comparison:
