@@ -18,6 +18,46 @@ const DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist
 const log = (msg) => console.log(`[KL] ${msg}`)
 
 // ---------------------------------------------------------------------------
+// Security headers — the same A+ posture the original cluster.js shipped,
+// retuned for this app:
+//   - script-src 'self' only (the build emits no inline scripts and the app
+//     uses no GA/analytics — stricter than the old config)
+//   - style-src allows 'unsafe-inline' (index.html's inline <style> + React/
+//     recharts inline style attributes) and Google Fonts CSS
+//   - img-src covers Kiva's image CDN + data: (CSS SVG backgrounds, favicons)
+//   - connect-src covers the same-origin /api & /proxy plus the client's
+//     direct Kiva-API and Google-Docs fallbacks
+//   - form-action allows the basket checkout POST to www.kiva.org
+// ---------------------------------------------------------------------------
+
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data: https://www.kiva.org https://*.kivaws.org",
+  "connect-src 'self' https://api.kivaws.org https://www.kiva.org https://docs.google.com",
+  "form-action 'self' https://www.kiva.org",
+  "frame-ancestors 'none'",
+  "frame-src 'none'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "worker-src 'self'",
+].join('; ')
+
+function setSecurityHeaders(res) {
+  res.setHeader('Content-Security-Policy', CSP)
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('X-Frame-Options', 'DENY')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.setHeader(
+    'Permissions-Policy',
+    'geolocation=(), microphone=(), camera=(), payment=(), usb=()',
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Static file serving (the app uses hash routing, so the server only serves
 // real files plus "/" -> index.html; unknown extension-less paths fall back
 // to index.html, missing asset files 404).
@@ -102,6 +142,8 @@ const state = createState()
 const refreshTimer = startRefresh(state, log)
 
 const server = http.createServer((req, res) => {
+  setSecurityHeaders(res)
+
   // Force HTTPS behind Heroku's TLS-terminating router.
   const proto = req.headers['x-forwarded-proto']
   if (proto === 'http') {
