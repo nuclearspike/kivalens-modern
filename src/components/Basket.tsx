@@ -102,9 +102,12 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
           <ComposedChart
             data={data}
             layout="vertical"
-            margin={{ left: 10, right: 10, top: 5, bottom: 5 }}
+            margin={{ left: 10, right: 10, top: 5, bottom: 12 }}
             barCategoryGap="25%"
           >
+            {/* Two $ scales: monthly (bottom axis / bars) and cumulative
+                (top axis / line). The legend names each series, so the axes
+                carry no inline title (avoids colliding with the legend). */}
             <XAxis
               xAxisId="amount"
               type="number"
@@ -112,8 +115,7 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
               domain={[0, 'dataMax']}
               tick={{ fontSize: 10 }}
               tickFormatter={dollar}
-              label={{ value: 'Monthly', position: 'insideBottom', offset: -2, fontSize: 11 }}
-              height={40}
+              height={24}
             />
             <XAxis
               xAxisId="cumulative"
@@ -122,12 +124,16 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
               domain={[0, 'dataMax']}
               tick={{ fontSize: 10 }}
               tickFormatter={dollar}
-              label={{ value: 'Cumulative', position: 'insideTop', offset: -16, fontSize: 11 }}
-              height={40}
+              height={20}
             />
             <YAxis dataKey="label" type="category" tick={{ fontSize: 9 }} width={60} interval={0} />
             <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
+            <Legend
+              verticalAlign="bottom"
+              height={28}
+              iconSize={12}
+              wrapperStyle={{ fontSize: 12, paddingTop: 10 }}
+            />
             {/* no barSize: bars scale with the row band (50% bar, 50% gap) */}
             <Bar
               xAxisId="amount"

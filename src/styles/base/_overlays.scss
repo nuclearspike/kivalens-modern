@@ -238,6 +238,9 @@ body.modal-open {
 .popover {
   position: absolute;
   z-index: $z-popover;
+  // Size to content up to the cap, otherwise the portal's unconstrained
+  // width collapses the box to the longest word (one word per line).
+  width: max-content;
   max-width: 276px;
   font-family: $font-family-base;
   font-size: $font-size-base;

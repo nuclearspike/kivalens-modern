@@ -1123,7 +1123,7 @@ export class Loans {
   async fetchSuperGraphData(params: Record<string, string>): Promise<any> {
     const qs = new URLSearchParams(params).toString()
     return getUrl(
-      `${location.protocol}//${location.host}/proxy/kiva/supergraph?${qs}`,
+      `${location.protocol}//${location.host}/proxy/kiva/ajax/getSuperGraphData?${qs}`,
       { parseJSON: true, includeRequestedWith: true }
     )
   }

@@ -786,6 +786,11 @@ ul.spacedList li {
 .rc-slider {
   height: 27px;
   padding: 11px 0;
+  // Inset by half the handle width so the handle's outer edge lands on the
+  // column edge (aligned with the dropdowns) instead of overflowing into the
+  // criteria column's `overflow-x: hidden` and getting clipped.
+  width: calc(100% - 26px);
+  margin: 0 13px;
 
   .rc-slider-track {
     background-color: $kl-slider-track;
